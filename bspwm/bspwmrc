@@ -1,0 +1,39 @@
+#! /bin/sh
+
+pgrep -x sxhkd > /dev/null || sxhkd &
+
+bspc monitor -d I II III IV
+
+# global configs
+bspc config border_width         2
+bspc config window_gap          12
+bspc config split_ratio          0.52
+bspc config borderless_monocle   true
+bspc config gapless_monocle      true
+
+# rules
+bspc rule -a Gimp desktop='^8' state=floating follow=on
+bspc rule -a firefox desktop='^2'
+bspc rule -a discord desktop='^3'
+bspc rule -a mplayer2 state=floating
+bspc rule -a Kupfer.py focus=on
+bspc rule -a Screenkey manage=off
+
+# startup
+
+# sets the background wallpaper
+feh --no-fehbg --bg-scale '/home/ireton/Pictures/84379567_p0.png'
+
+# wpgtk theme script
+$HOME/.config/wpg/wp_init.sh
+
+# launches the compositor compton
+picom &
+
+# polybar launch script
+$HOME/.config/polybar/launch.sh
+
+#launch discord
+pgrep -x Discord > /dev/null || discord &
+
+
