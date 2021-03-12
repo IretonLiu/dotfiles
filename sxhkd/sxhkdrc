@@ -130,8 +130,7 @@ ctrl + shift + Print
 
 # prints the screen
 Print
-	maim  ~/Pictures/screenshot.png
-
+	maim ~/Pictures/Screenshot_from_$(date +%s).png
 # prints the screen and move it to clipboard
 ctrl + Print
 	maim ~/Pictures/screenshot.png | xclip -selection clipboard -t image/png
