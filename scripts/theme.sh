@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-wpg -nrs 'red.png'
+wpg -nrs 'wallpaper1.jpg'
 clear
