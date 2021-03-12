@@ -4,7 +4,7 @@
 
 # terminal emulator
 ctrl + alt + t
-	xfce4-terminal
+	alacritty
 
 # program launcher
 super + @space
@@ -119,3 +119,21 @@ super + alt + shift + {h,j,k,l}
 # move a floating window
 super + {Left,Down,Up,Right}
 	bspc node -v {-20 0,0 20,0 -20,20 0}
+
+#
+# screenshots
+#
+
+# screenshot a selection of an area of the screen and move it to clipboard
+ctrl + shift + Print
+	maim -s | xclip -selection clipboard -t image/png
+
+# prints the screen
+Print
+	maim  ~/Pictures/screenshot.png
+
+# prints the screen and move it to clipboard
+ctrl + Print
+	maim ~/Pictures/screenshot.png | xclip -selection clipboard -t image/png
+
+

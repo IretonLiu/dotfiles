@@ -1,0 +1,26 @@
+
+special:
+    background: "#221616"
+    foreground: "#c7c4c4"
+    cursor: "#c7c4c4"
+
+
+background_opacity: 0.85
+
+colors:
+    color0: "#221616"
+    color1: "#ab7070"
+    color2: "#c7b6b5"
+    color3: "#ac4d48"
+    color4: "#af3029"
+    color5: "#a299a3"
+    color6: "#ac8e90"
+    color7: "#c7c4c4"
+    color8: "#595050"
+    color9: "#ab7070"
+    color10: "#c7b6b5"
+    color11: "#ac4d48"
+    color12: "#af3029"
+    color13: "#a299a3"
+    color14: "#ac8e90"
+    color15: "#c7c4c4"

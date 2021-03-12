@@ -2,14 +2,21 @@
 
 pgrep -x sxhkd > /dev/null || sxhkd &
 
-bspc monitor -d I II III IV
+# launches the compositor compton
+picom --experimental-backend &
+
+# polybar launch script
+$HOME/.config/polybar/launch.sh
+
+
+bspc monitor -d I II III IV V VI VII
 
 # global configs
 bspc config border_width         2
-bspc config window_gap          12
-bspc config split_ratio          0.52
+bspc config window_gap          15
+bspc config split_ratio          0.50
 bspc config borderless_monocle   true
-bspc config gapless_monocle      true
+bspc config gapless_monocle      false
 
 # rules
 bspc rule -a Gimp desktop='^8' state=floating follow=on
@@ -19,18 +26,14 @@ bspc rule -a mplayer2 state=floating
 bspc rule -a Kupfer.py focus=on
 bspc rule -a Screenkey manage=off
 
+#CUSTOM
+
 # startup
 # setup cursor from X to left pointer
 xsetroot -cursor_name left_ptr &
 
 # sets the background wallpaper
-feh --no-fehbg --bg-scale '/home/ireton/Pictures/red.png'
-
-# launches the compositor compton
-picom &
-
-# polybar launch script
-$HOME/.config/polybar/launch.sh
+feh --no-fehbg --bg-fill '/home/ireton/Pictures/Wallpapers/wallpaper1.jpg'
 
 #launch discord
 pgrep -x Discord > /dev/null || discord &
