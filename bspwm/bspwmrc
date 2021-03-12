@@ -20,12 +20,11 @@ bspc rule -a Kupfer.py focus=on
 bspc rule -a Screenkey manage=off
 
 # startup
+# setup cursor from X to left pointer
+xsetroot -cursor_name left_ptr &
 
 # sets the background wallpaper
-feh --no-fehbg --bg-scale '/home/ireton/Pictures/84379567_p0.png'
-
-# wpgtk theme script
-$HOME/.config/wpg/wp_init.sh
+feh --no-fehbg --bg-scale '/home/ireton/Pictures/red.png'
 
 # launches the compositor compton
 picom &
