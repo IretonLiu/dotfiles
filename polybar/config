@@ -22,7 +22,7 @@ background = #bf141414
 background-alt = #bf141414
 ;foreground = ${xrdb:color7:#222}
 foreground = #e7b896
-foreground-alt = #e7b896
+foreground-alt = #8D5C3F
 primary = #136aba
 secondary = #c98051
 tertiary = #d13838
@@ -62,10 +62,11 @@ font-5 = font Awesome 5 Brands:pixelsize=15;2
 
 modules-left = bspwm
 modules-center = date
-modules-right = filesystem pulseaudio xkeyboard memory cpu temperature powermenu
+modules-right = filesystem pulseaudio xkeyboard memory cpu powermenu
 
-tray-position = center
-tray-offset-x = 380
+;tray-position = center
+;tray-offset-x = 420
+;tray-transparent = false
 ;tray-padding = 2
 ;tray-background = #0063ff
 
@@ -109,7 +110,7 @@ interval = 25
 
 mount-0 = /
 
-label-mounted = %{F#3085d3} %{F-} %free%
+label-mounted = %{F#d13838} %{F-} %free%
 label-unmounted = %mountpoint% not mounted
 label-unmounted-foreground = ${colors.foreground-alt}
 
@@ -235,13 +236,13 @@ format-disconnected =
 type = internal/date
 interval = 1
 
-date = %A, %Y %B %d
+;date = %A, %Y %B %d
 date-alt = " %Y-%m-%d"
 
-time = %H:%M
-time-alt = %H:%M:%S
+time = %H:%M:%S
+;time-alt = %H:%M:%S
 
-format-prefix =  
+;format-prefix =   
 format-prefix-foreground = ${colors.foreground}
 format-underline = ${colors.primary}
 
@@ -376,7 +377,7 @@ menu-0-1-exec = menu-open-2
 menu-1-0 = cancel
 menu-1-0-exec = menu-open-0
 menu-1-1 = reboot
-menu-1-1-exec = sudo reboot
+menu-1-1-exec = reboot
 
 menu-2-0 = power off
 menu-2-0-exec = poweroff

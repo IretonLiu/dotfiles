@@ -1,0 +1,28 @@
+{
+    "wallpaper": "/home/ireton/.config/wpg/wallpapers/red.png",
+    "alpha": "100",
+
+    "special": {
+        "background": "#181818",
+        "foreground": "#ffcbc2",
+        "cursor": "#ffcbc2"
+    },
+    "colors": {
+        "color0": "#181818",
+        "color1": "#ab6d6c",
+        "color2": "#ff1f00",
+        "color3": "#ac4a45",
+        "color4": "#af1717",
+        "color5": "#3357ac",
+        "color6": "#ac8b8c",
+        "color7": "#ffcbc2",
+        "color8": "#594f4f",
+        "color9": "#ab6d6c",
+        "color10": "#ff1f00",
+        "color11": "#ac4a45",
+        "color12": "#af1717",
+        "color13": "#3357ac",
+        "color14": "#ac8b8c",
+        "color15": "#ffcbc2"
+    }
+}
