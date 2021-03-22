@@ -1,3 +1,3 @@
 # dotfiles
-A list of dotfiles for my bspwm
+A list of dotfiles for my bspwm.
 
