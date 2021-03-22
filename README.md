@@ -1,2 +1,2 @@
 # dotfiles
-Dotfiles for my bspwm setup.
+Dotfiles for my bspwm.
