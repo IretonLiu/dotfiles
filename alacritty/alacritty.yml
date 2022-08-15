@@ -1,26 +1,51 @@
-
-special:
-    background: "#221616"
-    foreground: "#c7c4c4"
-    cursor: "#c7c4c4"
-
-
-background_opacity: 0.85
+window:
+    opacity: 0.85
 
 colors:
-    color0: "#221616"
-    color1: "#ab7070"
-    color2: "#c7b6b5"
-    color3: "#ac4d48"
-    color4: "#af3029"
-    color5: "#a299a3"
-    color6: "#ac8e90"
-    color7: "#c7c4c4"
-    color8: "#595050"
-    color9: "#ab7070"
-    color10: "#c7b6b5"
-    color11: "#ac4d48"
-    color12: "#af3029"
-    color13: "#a299a3"
-    color14: "#ac8e90"
-    color15: "#c7c4c4"
+  # Default colors
+  primary:
+    background: '#141414'
+    foreground: '#E7B896'
+
+    dim_foreground:    '#ADADAD'
+    bright_foreground: '#DFDFDF'
+    dim_background:    '#090909' # not sure
+    bright_background: '#232323' # not sure
+
+  # Cursor colors
+  cursor:
+    text:   '0x2c2c2c'
+    cursor: '#E7B896'
+
+  # Normal colors
+  normal:
+    black:   '#141414' # not sure
+    red:     '#B7541E' # not sure
+    green:   '#CB732D' # executable colour
+    yellow:  '#136ABA' # image colour
+    blue:    '#D34646' # folder colour
+    magenta: '#3F5FC8' # not sure
+    cyan:    '#59A2D8' # not sure
+    white:   '#D88449' # not sure
+
+  # Bright colors
+  bright:
+    black:   '#adadad'
+    red:     '#bd602e'
+    green:   '#c98051'
+    yellow:  '#3085d3'
+    blue:    '#d06363'
+    magenta: '#516abe'
+    cyan:    '#76a3cc'
+    white:   '#e7b896'
+
+  # # Dim colors
+  # dim:
+  #   black:   '0x232323'
+  #   red:     '0x74423f'
+  #   green:   '0x5e6547'
+  #   yellow:  '0x8b7653'
+  #   blue:    '0x556b79'
+  #   magenta: '0x6e4962'
+  #   cyan:    '0x5c8482'
+  #   white:   '0x828282'
