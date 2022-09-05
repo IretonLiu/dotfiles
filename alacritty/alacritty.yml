@@ -79,4 +79,5 @@ font:
   #   white:   '0x828282'
 
 key_bindings:
-  - { key: T,   mods: Control|Shift, action: SpawnNewInstance }
+  - { key: T,   mods: Control|Shift, action: SpawnNewInstance } # new instance in same directory
+  - { key: W, mods: Control, action: Quit}
