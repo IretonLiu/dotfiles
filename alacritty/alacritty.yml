@@ -2,7 +2,7 @@ window:
     padding:
       x: 5
       y: 5
-    opacity: 0.85
+    opacity: 0.9
 
 colors:
   # Default colors
@@ -75,7 +75,7 @@ font:
 
 cursor:
   style:
-    shape: Underline
+    shape: Block
 
   # # Dim colors
   # dim:
