@@ -1,0 +1,5 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =3
+let g:netrw_dirhist_3='/home/ireton/Uni/COMS4/.git'
+let g:netrw_dirhist_2='/home/ireton/.config/alacritty'
+let g:netrw_dirhist_1='/home/ireton/.vim'
