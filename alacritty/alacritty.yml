@@ -5,22 +5,82 @@ window:
       y: 5
     opacity: 0.80
 
-colors:
-  # Default colors
-  primary:
-    background: '#141414'
-    foreground: '#E7B896'
+      # colors:
+      #   # Default colors
+      #   primary:
+      #     background: '#141414'
+      #     foreground: '#E7B896'
+      # 
+      #     dim_foreground:    '#ADADAD'
+      #     bright_foreground: '#DFDFDF'
+      #     dim_background:    '#090909' # not sure
+      #     bright_background: '#232323' # not sure
+      # 
+      #   # Cursor colors
+      #   cursor:
+      #     text:   '0x2c2c2c'
+      #     cursor: '#E7B896'
+schemes:
+  # Tokyo Night theme, based on both:
+  #   https://github.com/ghifarit53/tokyonight-vim
+  #   https://github.com/enkia/tokyo-night-vscode-theme
+  tokyo-night: &tokyo-night
+    # Default colors
+    primary:
+      background: '#1a1b26'
+      foreground: '#a9b1d6'
 
-    dim_foreground:    '#ADADAD'
-    bright_foreground: '#DFDFDF'
-    dim_background:    '#090909' # not sure
-    bright_background: '#232323' # not sure
+    # Normal colors
+    normal:
+      black:   '#32344a'
+      red:     '#f7768e'
+      green:   '#9ece6a'
+      yellow:  '#e0af68'
+      blue:    '#7aa2f7'
+      magenta: '#ad8ee6'
+      cyan:    '#449dab'
+      white:   '#787c99'
 
-  # Cursor colors
-  cursor:
-    text:   '0x2c2c2c'
-    cursor: '#E7B896'
+    # Bright colors
+    bright:
+      black:   '#444b6a'
+      red:     '#ff7a93'
+      green:   '#b9f27c'
+      yellow:  '#ff9e64'
+      blue:    '#7da6ff'
+      magenta: '#bb9af7'
+      cyan:    '#0db9d7'
+      white:   '#acb0d0'
 
+  tokyo-night-storm: &tokyo-night-storm
+    # Default colors
+    primary:
+      background: '#24283b'
+      foreground: '#a9b1d6'
+
+    # Normal colors
+    normal:
+      black:   '#32344a'
+      red:     '#f7768e'
+      green:   '#9ece6a'
+      yellow:  '#e0af68'
+      blue:    '#7aa2f7'
+      magenta: '#ad8ee6'
+      cyan:    '#449dab'
+      white:   '#9699a8'
+
+    # Bright colors
+    bright:
+      black:   '#444b6a'
+      red:     '#ff7a93'
+      green:   '#b9f27c'
+      yellow:  '#ff9e64'
+      blue:    '#7da6ff'
+      magenta: '#bb9af7'
+      cyan:    '#0db9d7'
+      white:   '#acb0d0'
+
+colors: *tokyo-night
   # Normal colors
   # normal:
   #   black:   '#141414' # not sure
@@ -31,26 +91,26 @@ colors:
   #   magenta: '#3F5FC8' # not sure
   #   cyan:    '#59A2D8' # not sure
   #   white:   '#D88449' # not sure
-  normal:
-    black:   '#141414' # not sure
-    red:     '#B7541E' # not sure
-    green:   '#CB732D' # executable colour
-    yellow:  '#D34646' # image colour
-    blue:    '#59A2D8' # folder colour red: #D34646
-    magenta: '#3F5FC8' # not sure
-    cyan:    '#136ABA' # not sure
-    white:   '#D88449' # not sure
-
-  # Bright colors
-  bright:
-    black:   '#adadad'
-    red:     '#bd602e'
-    green:   '#c98051'
-    yellow:  '#3085d3'
-    blue:    '#d06363'
-    magenta: '#516abe'
-    cyan:    '#76a3cc'
-    white:   '#e7b896'
+  #  normal:
+  #    black:   '#141414' # not sure
+  #    red:     '#B7541E' # not sure
+  #    green:   '#CB732D' # executable colour
+  #    yellow:  '#D34646' # image colour
+  #    blue:    '#59A2D8' # folder colour red: #D34646
+  #    magenta: '#3F5FC8' # not sure
+  #    cyan:    '#136ABA' # not sure
+  #    white:   '#D88449' # not sure
+  #
+  #  # Bright colors
+  #  bright:
+  #    black:   '#adadad'
+  #    red:     '#bd602e'
+  #    green:   '#c98051'
+  #    yellow:  '#3085d3'
+  #    blue:    '#d06363'
+  #    magenta: '#516abe'
+  #    cyan:    '#76a3cc'
+  #    white:   '#e7b896'
 
 font:
   normal:
