@@ -14,18 +14,20 @@ return require('packer').startup(function(use)
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
 
-    use({
-        'projekt0n/github-nvim-theme',
-        tag = 'v0.0.7',
-        -- or                            branch = '0.0.x'
-        config = function()
-            require('github-theme').setup({
-                -- ...
-            })
-        end
-    })
+    --    use({
+    --        'projekt0n/github-nvim-theme',
+    --        tag = 'v0.0.7',
+    --        -- or                            branch = '0.0.x'
+    --        config = function()
+    --            require('github-theme').setup({
+    --                -- ...
+    --            })
+    --        end
+    --    })
     use('nvim-treesitter/playground')
-    use('ourigen/skyline.vim')
+    -- use('ourigen/skyline.vim')
+    use { 'folke/tokyonight.nvim' }
+    use { 'nvim-lualine/lualine.nvim' }
     use('tpope/vim-fugitive')
     use {
         'VonHeikemen/lsp-zero.nvim',
@@ -57,4 +59,5 @@ return require('packer').startup(function(use)
             { 'nvim-telescope/telescope-dap.nvim' }
         }
     }
+    use { 'norcalli/nvim-colorizer.lua' }
 end)
