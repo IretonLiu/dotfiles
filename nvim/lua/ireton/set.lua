@@ -21,6 +21,8 @@ vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
 
+-- netrw
+vim.g.netrw_localrmdir = 'rm -rf'
 -- autocomplete
 vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 -- vim.opt.colorcolumn = "100"
