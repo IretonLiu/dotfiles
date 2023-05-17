@@ -36,3 +36,6 @@ vim.keymap.set("n", "<leader>b", ":lua require'dap'.toggle_breakpoint()<CR>")
 vim.keymap.set("n", "<leader>B", ":lua require'dap'.continue()<CR>")
 vim.keymap.set("n", "<leader>lp", ":lua require'dap'.continue()<CR>")
 vim.keymap.set("n", "<leader>dr", ":lua require'dap'.continue()<CR>")
+
+-- lsp logging
+vim.lsp.set_log_level("debug")
