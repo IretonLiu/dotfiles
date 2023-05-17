@@ -39,3 +39,6 @@ vim.keymap.set("n", "<leader>dr", ":lua require'dap'.continue()<CR>")
 
 -- lsp logging
 vim.lsp.set_log_level("debug")
+
+-- copilot
+vim.g.copilot_assume_mapped = true

@@ -11,6 +11,10 @@ local cmp_mappings = lsp.defaults.cmp_mappings({
         ['<C-e>'] = cmp.mapping.abort(),
 })
 
+-- disable cmp tab keybindings for copilot
+cmp_mappings['<Tab>'] = vim.NIL
+cmp_mappings['<S-Tab>'] = vim.NIL
+
 lsp.setup_nvim_cmp({
     mapping = cmp_mappings
 })
