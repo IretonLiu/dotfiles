@@ -5,3 +5,4 @@ require('tokyonight').setup({
     transparent = "true",
 })
 vim.cmd [[colorscheme tokyonight]]
+vim.cmd [[hi NvimTreeNormal guibg=none]]

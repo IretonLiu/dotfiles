@@ -1,7 +1,7 @@
 vim.opt.relativenumber = true
 vim.opt.nu = true
 vim.opt.numberwidth = 4
-
+vim.opt.wrap = false
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
 vim.opt.shiftwidth = 4
@@ -22,7 +22,9 @@ vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
 
 -- netrw
-vim.g.netrw_localrmdir = 'rm -rf'
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 -- autocomplete
 vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 -- vim.opt.colorcolumn = "100"
