@@ -19,7 +19,17 @@ lsp.setup_nvim_cmp({
     mapping = cmp_mappings
 })
 
+-- (Optional) Configure clangd for neovim
+-- Remove multiple different client offset_encodings warning
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.offsetEncoding = { "utf-8" }
+require('lspconfig').clangd.setup({
+    capabilities = capabilities
+})
+
+
 lsp.setup()
+
 
 vim.diagnostic.config({
     virtual_text = true,
