@@ -26,7 +26,7 @@ ZSH_THEME="robbyrussell"
 # Uncomment one of the following lines to change the auto-update behavior
 # zstyle ':omz:update' mode disabled  # disable automatic updates
 # zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+# zstyle ':omz:update' mode reminder  # just remind me to update when it's time:q
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13
@@ -73,6 +73,7 @@ ZSH_THEME="robbyrussell"
 # plugins=(git)
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting)
 
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
@@ -106,7 +107,8 @@ alias va="source env/bin/activate"
 export PATH=/usr/local/go/bin:$PATH
 export PATH=/usr/local/cuda-12.1/bin:$PATH
 export LD_LIBRARY_PATH="/usr/local/cuda-12.1/lib64:$LD_LIBRARY_PATH"
-
+# synergy binaries
+export PATH=/home/ireton/builds/synergy-core/build/bin:$PATH
 # nvm
 export NVM_DIR=~/.nvm
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
