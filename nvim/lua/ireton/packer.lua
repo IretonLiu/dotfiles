@@ -70,4 +70,6 @@ return require('packer').startup(function(use)
             { 'nvim-tree/nvim-web-devicons' }
         }
     }
+    -- image viewer
+    use { 'edluffy/hologram.nvim' }
 end)

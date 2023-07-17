@@ -119,6 +119,11 @@ _G.packer_plugins = {
     path = "/home/ireton/.local/share/nvim/site/pack/packer/start/friendly-snippets",
     url = "https://github.com/rafamadriz/friendly-snippets"
   },
+  ["hologram.nvim"] = {
+    loaded = true,
+    path = "/home/ireton/.local/share/nvim/site/pack/packer/start/hologram.nvim",
+    url = "https://github.com/edluffy/hologram.nvim"
+  },
   ["lsp-zero.nvim"] = {
     loaded = true,
     path = "/home/ireton/.local/share/nvim/site/pack/packer/start/lsp-zero.nvim",
