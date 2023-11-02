@@ -25,8 +25,8 @@ vim.opt.updatetime = 50
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
--- autocomplete
-vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
+-- autoformat
+-- vim.cmd [[autocmd BufWritePre * lua conform.format()]]
 -- vim.opt.colorcolumn = "100"
 
 -- debugging
@@ -40,7 +40,7 @@ vim.keymap.set("n", "<leader>lp", ":lua require'dap'.continue()<CR>")
 vim.keymap.set("n", "<leader>dr", ":lua require'dap'.continue()<CR>")
 
 -- lsp logging
-vim.lsp.set_log_level("debug")
+vim.lsp.set_log_level("warn")
 
 -- copilot
 vim.g.copilot_assume_mapped = true
