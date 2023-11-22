@@ -26,7 +26,7 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 -- autoformat
--- vim.cmd [[autocmd BufWritePre * lua conform.format()]]
+vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 -- vim.opt.colorcolumn = "100"
 
 -- debugging
