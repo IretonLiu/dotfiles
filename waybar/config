@@ -73,7 +73,7 @@
         }
     },
     "tray": {
-         "icon-size": 21,
+        "icon-size": 21,
         "spacing": 10
     },
     "clock": {
@@ -170,7 +170,6 @@
         "signal": 6,
 
     }
-        
 
 }
 
