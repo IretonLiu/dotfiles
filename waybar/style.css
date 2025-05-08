@@ -1,6 +1,5 @@
 * {
     /* `otf-font-awesome` is required to be installed for icons */
-<<<<<<< HEAD
     font-family: "CodeNewRoman Nerd Font Propo";
     font-size: 17px;
     font-weight: 600;
@@ -30,10 +29,6 @@ window#waybar.hidden {
 <<<<<<< HEAD
     opacity: 0.8;
 } */
-=======
-    opacity: 0.2;
-}
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 
 /*
 window#waybar.empty {
@@ -53,7 +48,6 @@ window#waybar.chromium {
     border: none;
 }
 
-<<<<<<< HEAD
 .modules-left {
     padding: 5px 100px 5px 7px;
     margin: 5px;
@@ -72,8 +66,6 @@ window#waybar.chromium {
     border-radius:8px;
     background: linear-gradient(to left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.0));
 }
-=======
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 button {
     /* Use box-shadow instead of border so the text isn't offset */
     box-shadow: inset 0 -3px transparent;
@@ -91,11 +83,7 @@ button:hover {
 #workspaces button {
     padding: 0 5px;
     background-color: transparent;
-<<<<<<< HEAD
     color: #ffffff;
-=======
-    color: #000000;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #workspaces button:hover {
@@ -152,12 +140,7 @@ button:hover {
 }
 
 #clock {
-<<<<<<< HEAD
     background-color: transparent; 
-=======
-    background-color: #444444; 
-    border-radius: 5px;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #battery {
@@ -193,7 +176,6 @@ label:focus {
 }
 
 #cpu {
-<<<<<<< HEAD
     background-color: transparent;
     color: #ffffff;
 }
@@ -205,23 +187,10 @@ label:focus {
 
 #disk {
     background-color: transparent;
-=======
-    background-color: #2ecc71;
-    color: #000000;
-}
-
-#memory {
-    background-color: #9b59b6;
-}
-
-#disk {
-    background-color: #964B00;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #backlight {
     background-color: #90b1b1;
-<<<<<<< HEAD
     border-radius: 10px;
     padding-right: 15px;
 }
@@ -229,17 +198,10 @@ label:focus {
 #network {
     background-color: transparent;
     border-radius: 10px;
-=======
-}
-
-#network {
-    background-color: #2980b9;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #network.disconnected {
     background-color: #f53c3c;
-<<<<<<< HEAD
     border-radius: 10px;
 }
 
@@ -248,13 +210,6 @@ label:focus {
     color: #fefefe;
     border-radius: 10px;
     padding-right: 15px;
-=======
-}
-
-#pulseaudio {
-    background-color: #fefefe;
-    color: #000000;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #pulseaudio.muted {
@@ -263,17 +218,12 @@ label:focus {
 }
 
 #wireplumber {
-<<<<<<< HEAD
     background-color: transparent;
     color: #ffffff;
 }
 
 #wireplumber button:hover{
     background-color: inherit;
-=======
-    background-color: #fff0f5;
-    color: #000000;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #wireplumber.muted {
@@ -295,21 +245,14 @@ label:focus {
 }
 
 #temperature {
-<<<<<<< HEAD
     background-color: transparent;
     color: #ffffff;
-=======
-    background-color: #f0932b;
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #temperature.critical {
     background-color: #eb4d4b;
-<<<<<<< HEAD
     border-radius: 10px;
     padding-right: 15px;
-=======
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #tray {
@@ -327,21 +270,15 @@ label:focus {
 
 #idle_inhibitor {
     background-color: #2d3436;
-<<<<<<< HEAD
     border-radius: 10px;
     padding-right: 15px;
-=======
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #idle_inhibitor.activated {
     background-color: #ecf0f1;
     color: #2d3436;
-<<<<<<< HEAD
     border-radius: 10px;
     padding-right: 15px;
-=======
->>>>>>> c7d8fa4ec6594dfa8c870707239f64655131e1cb
 }
 
 #mpd {

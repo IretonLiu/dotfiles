@@ -1,7 +1,7 @@
 
 * {
-    background:     #111111D0;
-    background-alt: #111111D0;
+    background:     #111111Df;
+    background-alt: #111111Df;
     foreground:     #C0CAF5EF;
     selected:       #33467CFF;
     active:         #414868FF;

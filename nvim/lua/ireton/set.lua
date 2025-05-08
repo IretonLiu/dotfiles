@@ -44,3 +44,5 @@ vim.lsp.set_log_level("warn")
 
 -- copilot
 vim.g.copilot_assume_mapped = true
+vim.api.nvim_set_option("clipboard", "unnamedplus")
+
