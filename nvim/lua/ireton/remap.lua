@@ -1,5 +1,4 @@
 vim.g.mapleader = " "
-vim.keymap.set("n", "<leader>fe", vim.cmd.NvimTreeToggle, { desc = "Toggle NvimTree" })
 
 
 -- move visual mode selected blocks
@@ -23,7 +22,7 @@ vim.keymap.set("n", "<leader>Y", [["+Y]], { desc = "Copy to clipboard" })
 
 vim.keymap.set({ "n", "v" }, "<leader>d", "\"_d", { desc = "Delete without yanking" })
 
-vim.keymap.set("i", "C-c", "<Esc>", { desc = "Exit insert mode" })
+vim.api.nvim_set_keymap('i', '<C-c>', '<Esc>', { noremap = true, silent = true })
 
 -- lsp
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open diagnostics" })
