@@ -1,3 +1,31 @@
-dap = require('dap')
+local dap = require('dap')
+dap.configurations.python = {
+    {
+        -- The first three options are required by nvim-dap
+        type = 'python', -- the type here established the link to the adapter definition: `dap.adapters.python`
+        request = 'launch',
+        name = "Launch file",
 
-require('dap.ext.vscode').load_launchjs()
+        -- Options below are for debugpy, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for supported options
+
+        program = "${file}", -- This configuration will launch the current file if used.
+        pythonPath = function()
+            -- debugpy supports launching an application with a different interpreter then the one used to launch debugpy itself.
+            -- The code below looks for a `venv` or `.venv` folder in the current directly and uses the python within.
+            -- You could adapt this - to for example use the `VIRTUAL_ENV` environment variable.
+            local cwd = vim.fn.getcwd()
+            local home = vim.env.HOME
+            if vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
+                return cwd .. '/venv/bin/python'
+            elseif vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
+                return cwd .. '/.venv/bin/python'
+            elseif vim.fn.executable(cwd .. '/env/bin/python') == 1 then
+                return cwd .. '/env/bin/python'
+            elseif vim.fn.executable(home .. '/miniconda3/bin/python') == 1 then
+                return home .. '/miniconda3/bin/python'
+            else
+                return '/usr/bin/python'
+            end
+        end,
+    },
+}
