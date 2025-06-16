@@ -54,7 +54,7 @@ return require('packer').startup(function(use)
     }
     use { 'norcalli/nvim-colorizer.lua' }
     -- copilot
-    -- use { 'github/copilot.vim' }
+    use { 'github/copilot.vim' }
     use { 'm4xshen/autoclose.nvim' }
     -- file explorer
     use {

@@ -23,6 +23,8 @@ dap.configurations.python = {
                 return cwd .. '/env/bin/python'
             elseif vim.fn.executable(home .. '/miniconda3/bin/python') == 1 then
                 return home .. '/miniconda3/bin/python'
+            elseif vim.fn.executable(home .. '/micromamba/bin/python') == 1 then
+                return home .. '/micromamba/bin/python'
             else
                 return '/usr/bin/python'
             end
