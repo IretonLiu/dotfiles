@@ -18,6 +18,7 @@
         "network", 
         "cpu", 
         "memory", 
+        "battery",
         "custom/powermenu"
     ],
     "keyboard-state": {
@@ -162,11 +163,13 @@
         "format": "{volume}% {icon}",
         "format-muted": "",
         "on-click": "helvum",
+
         "format-icons": ["", "", ""]
     },
     "custom/powermenu": {
         "on-click": "~/.config/rofi/powermenu/type-2/powermenu.sh",
         "format": " ",
+        "tooltip-format": "Power Menu",
         "signal": 6,
 
     }

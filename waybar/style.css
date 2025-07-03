@@ -145,13 +145,18 @@ button:hover {
 
 #battery {
     background-color: transparent; 
-    color: #000000;
+    color: #ffffff;
     margin-right: 5;
 }
+#battery:hover{
+    background: inherit;
+    box-shadow: inset 0 -3px #ffffff;
+}
+
 
 #battery.charging, #battery.plugged {
-    color: #ffffff;
-    background-color: #26A65B;
+    color: #26A65B;
+    background-color: transparent;
 }
 
 @keyframes blink {
