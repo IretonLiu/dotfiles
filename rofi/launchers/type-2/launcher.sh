@@ -15,6 +15,12 @@ dir="$HOME/.config/rofi/launchers/type-2"
 theme='style-2'
 
 ## Run
-rofi \
-    -show drun \
-    -theme ${dir}/${theme}.rasi
+
+if pgrep -x rofi; then
+    killall rofi
+else
+    rofi \
+        -show drun \
+        -theme ${dir}/${theme}.rasi
+fi
+        
