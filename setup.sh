@@ -1,5 +1,9 @@
-ln -sn $HOME/dotfiles/waybar $HOME/.config
+
+if [ -d "$HOME/.config/hypr" ]; then
+       rm -rf $HOME/.config/hypr
+fi       
 ln -sn $HOME/dotfiles/hypr $HOME/.config
+ln -sn $HOME/dotfiles/waybar $HOME/.config
 ln -sn $HOME/dotfiles/rofi $HOME/.config
 
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm

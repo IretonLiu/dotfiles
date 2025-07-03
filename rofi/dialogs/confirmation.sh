@@ -2,8 +2,8 @@
 dir="$HOME/.config/rofi/dialogs"
 theme='style-5'
 
-yes=''
-no=''
+yes=''
+no=''
 # Confirmation CMD
 confirm_cmd() {
 	rofi -theme-str 'window {location: center; anchor: center; fullscreen: false; width: 350px;}' \
@@ -31,17 +31,7 @@ run_rofi() {
 run_cmd() {
 	selected="$(confirm_exit)"
     if [[ "$selected" == "$yes" ]]; then
-        if [[ "$DESKTOP_SESSION" == 'openbox' ]]; then
-            openbox --exit
-        elif [[ "$DESKTOP_SESSION" == 'bspwm' ]]; then
-            bspc quit
-        elif [[ "$DESKTOP_SESSION" == 'i3' ]]; then
-            i3-msg exit
-        elif [[ "$DESKTOP_SESSION" == 'plasma' ]]; then
-            qdbus org.kde.ksmserver /KSMServer logout 0 0 0
-        elif [[ "$DESKTOP_SESSION" == 'hyprland' ]]; then
             hyprctl dispatch exit
-        fi
     else
         exit 0
     fi

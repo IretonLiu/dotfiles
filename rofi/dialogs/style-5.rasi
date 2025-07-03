@@ -26,7 +26,8 @@ window {
     transparency:                "real";
     location:                    northeast;
     fullscreen:                  false;
-    width:                       80px;
+    width:                       100px;
+    height:                      200px;
     x-offset:                    -10;
     y-offset:                    10;
 
