@@ -26,7 +26,7 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 -- autoformat
-vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
+-- vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
 -- vim.opt.colorcolumn = "100"
 
 -- debugging
@@ -45,4 +45,5 @@ vim.lsp.set_log_level("warn")
 -- copilot
 vim.g.copilot_assume_mapped = true
 vim.api.nvim_set_option("clipboard", "unnamedplus")
-
+vim.opt.autochdir = true
+vim.opt.swapfile = false

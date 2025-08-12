@@ -1,4 +1,5 @@
 vim.g.mapleader = " "
+vim.keymap.set("n", "<leader>fe", vim.cmd.Oil, { desc = "Toggle file explorer" })
 
 
 -- move visual mode selected blocks
