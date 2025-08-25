@@ -6,21 +6,31 @@
     // "width": 1280, // Waybar width
     "spacing": 8, // Gaps between modules (4px)
     // Choose the order of the modules
+
+
+
     "modules-left": [
         "clock",
         "hyprland/window"
     ],
+
+
     "modules-center": [
         "hyprland/workspaces"
     ],
+
+
     "modules-right": [
         "wireplumber", 
+        "bluetooth",
         "network", 
-        "cpu", 
-        "memory", 
+        //"cpu", 
+        //"memory", 
         "battery",
         "custom/powermenu"
     ],
+
+
     "keyboard-state": {
         "numlock": true,
         "capslock": true,
@@ -30,15 +40,24 @@
             "unlocked": ""
         }
     },
-    "sway/mode": {
-        "format": "<span style=\"italic\">{}</span>"
+
+
+
+    "hyprland/workspaces": {
+      "format": "{icon}",
+      "format-window-separator": " ",
+      "window-rewrite-default": "",
+      "window-rewrite": {
+        "title<.*youtube.*>": "", // Windows whose titles contain "youtube"
+        "class<firefox>": "", // Windows whose classes are "firefox"
+        "class<firefox> title<.*github.*>": "", // Windows whose class is "firefox" and title contains "github". Note that "class" always comes first.
+        "alacritty": "", // Windows that contain "foot" in either class or title. For optimization reasons, it will only match against a title if at least one other window explicitly matches against a title.
+        "code": "󰨞",
+        },
     },
-    "sway/scratchpad": {
-        "format": "{icon} {count}",
-        "show-empty": false,
-        "format-icons": ["", ""],
-        "tooltip": true,
-        "tooltip-format": "{app}: {title}"
+
+    "hyprland/window": {
+        "format" : "{initialClass}"
     },
     "mpd": {
         "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ⸨{songPosition}|{queueLength}⸩ {volume}% ",
@@ -66,17 +85,6 @@
         "tooltip-format": "MPD (connected)",
         "tooltip-format-disconnected": "MPD (disconnected)"
     },
-    "idle_inhibitor": {
-        "format": "{icon}",
-        "format-icons": {
-            "activated": "",
-            "deactivated": ""
-        }
-    },
-    "tray": {
-        "icon-size": 21,
-        "spacing": 10
-    },
     "clock": {
         // "timezone": "America/New_York",
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
@@ -89,14 +97,6 @@
     "memory": {
         "format": "{}% "
     },
-    "temperature": {
-        // "thermal-zone": 2,
-        // "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
-        "critical-threshold": 80,
-        // "format-critical": "{temperatureC}°C {icon}",
-        "format": "{temperatureC}°C {icon}",
-        "format-icons": ["", "", ""]
-    },
     "backlight": {
         // "device": "acpi_video1",
         "format": "{percent}% {icon}",
@@ -104,48 +104,26 @@
     },
     "battery": {
         "states": {
-            // "good": 95,
+            "good": 95,
             "warning": 30,
             "critical": 15
         },
-        "format": "{capacity}% {icon}",
-        "format-charging": "{capacity}% ",
-        "format-plugged": "{capacity}% ",
+        "format": "{icon}",
+        "format-charging": " ",
+        "format-plugged": " ",
         "format-alt": "{time} {icon}",
         // "format-good": "", // An empty format will hide the module
         // "format-full": "",
-        "format-icons": ["", "", "", "", ""]
-    },
-    "battery#bat2": {
-        "bat": "BAT2"
+        "format-icons": [" ", " ", " ", " ", " "]
     },
     "network": {
-        "format-wifi": "",
-        "format-ethernet":"",
-        "format-disconnected": "",
+        "format-wifi": " ",
+        "format-ethernet":" ",
+        "format-disconnected": "",
         "tooltip-format-disconnected": "Error",
         "tooltip-format-wifi": "{essid} ({signalStrength}%) ",
         "tooltip-format-ethernet": "{ifname} 🖧 ",
-        "on-click": "alacritty nmtui"
-    },
-    "pulseaudio": {
-        // "scroll-step": 1, // %, can be a float
-        "format": "{volume}% {icon} ",
-        "format-bluetooth": "{volume}% {icon} {format_source}",
-        "format-bluetooth-muted": " {icon} {format_source}",
-        "format-muted": " {format_source}",
-        // "format-source": "{volume}% ",
-        // "format-source-muted": "",
-        "format-icons": {
-            "headphone": "",
-            "hands-free": "",
-            "headset": "",
-            "phone": "",
-            "portable": "",
-            "car": "",
-            "default": ["", "", ""]
-        },
-        // "on-click": "pavucontrol"
+        "on-click": "alacritty --class floating -e nmtui"
     },
     "custom/media": {
         "format": "{icon} {}",
@@ -160,11 +138,12 @@
         // "exec": "$HOME/.config/waybar/mediaplayer.py --player spotify 2> /dev/null" // Filter player based on name
     },
     "wireplumber": {
-        "format": "{volume}% {icon}",
+        "format": "{icon}",
         "format-muted": "",
-        "on-click": "helvum",
-
-        "format-icons": ["", "", ""]
+        // mute on click
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "tooltip-format": "{volume}%",
+        "format-icons": [" ", " ", " "]
     },
     "custom/powermenu": {
         "on-click": "~/.config/rofi/powermenu/type-2/powermenu.sh",
@@ -172,7 +151,19 @@
         "tooltip-format": "Power Menu",
         "signal": 6,
 
+    },
+    "bluetooth": {
+        "format": "",
+        "format-connected": "",
+        "format-connected-battery": " {device_battery_percentage}% ",
+        "on-click": "alacritty --class floating -e bluetui"
+        // "format-device-preference": [ "device1", "device2" ], // preference list deciding the displayed device
+        // "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+        // "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+        // "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        // "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%"
     }
+
 
 }
 
