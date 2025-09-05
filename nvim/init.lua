@@ -1,6 +1,7 @@
 require("ireton")
+vim.lsp.enable("ruff")
+vim.lsp.enable("basedpyright")
 -- vim.lsp.enable('luals')
--- vim.lsp.enable('ruff')
 -- vim.lsp.enable('pylsp')
 -- vim.lsp.enable('eslint')
 -- vim.lsp.enable('tsserver')

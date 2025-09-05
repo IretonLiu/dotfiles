@@ -9,7 +9,6 @@ vim.opt.expandtab = true
 
 vim.opt.smartindent = false
 
-
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
 
@@ -47,3 +46,4 @@ vim.g.copilot_assume_mapped = true
 vim.api.nvim_set_option("clipboard", "unnamedplus")
 vim.opt.autochdir = true
 vim.opt.swapfile = false
+vim.o.pumheight = 10

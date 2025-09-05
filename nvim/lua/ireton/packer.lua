@@ -39,7 +39,7 @@ return packer.startup(function(use)
 	use({ "hrsh7th/cmp-buffer" }) -- Optional
 	use({ "hrsh7th/cmp-path" }) -- Optional
 	use({ "hrsh7th/cmp-cmdline" }) -- optional
-	-- use { 'saadparwaiz1/cmp_luasnip' } -- Optional
+	use({ "saadparwaiz1/cmp_luasnip" }) -- Optional
 	-- use { 'hrsh7th/cmp-nvim-lua' }     -- Optional
 
 	-- Snippets
@@ -68,9 +68,6 @@ return packer.startup(function(use)
 		requires = {
 			"nvim-tree/nvim-web-devicons", -- optional, for file icons
 		},
-		config = function()
-			require("oil").setup()
-		end,
 	})
 	-- use {
 	--     'nvim-tree/nvim-tree.lua',

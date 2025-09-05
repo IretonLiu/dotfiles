@@ -12,8 +12,7 @@
 
 @define-color primary #89b4fa;
 @define-color secondary #f38ba8;
-@define-color pale #cdd6f4;
-@define-color dark #1e1e2e;
+@define-color pale #d2e2fd;
 window#waybar {
   all: unset;
 }
@@ -61,7 +60,7 @@ window#waybar {
 #workspaces button.active {
   background: linear-gradient(90deg, @primary, @pale, @primary);
   background-size: 400% 400%; /* makes it large so it can flow */
-  /*animation: flow 60s linear infinite;*/
+  animation: flow 10s linear infinite;
   padding: 2 20px;
   color: #1e1e2e;
 }
@@ -84,7 +83,7 @@ window#waybar {
   background: linear-gradient(90deg, @secondary, @primary, @secondary);
   background-size: 400% 400%; /* makes it large so it can flow */
   /* animation of gradient */
-  /*  animation: flow 120s linear infinite;*/
+  animation: flow 120s linear infinite;
 }
 
 #clock,

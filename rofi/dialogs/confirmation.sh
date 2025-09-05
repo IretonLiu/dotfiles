@@ -31,7 +31,7 @@ run_rofi() {
 run_cmd() {
 	selected="$(confirm_exit)"
     if [[ "$selected" == "$yes" ]]; then
-            hyprctl dispatch exit
+        hyprlock
     else
         exit 0
     fi

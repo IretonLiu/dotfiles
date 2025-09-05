@@ -57,7 +57,7 @@
     },
 
     "hyprland/window": {
-        "format" : "{initialClass}"
+        "format" : "{title}"
     },
     "mpd": {
         "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ⸨{songPosition}|{queueLength}⸩ {volume}% ",
@@ -109,7 +109,7 @@
             "critical": 15
         },
         "format": "{icon}",
-        "format-charging": " ",
+        "format-charging": "",
         "format-plugged": " ",
         "format-alt": "{time} {icon}",
         // "format-good": "", // An empty format will hide the module
@@ -119,9 +119,9 @@
     "network": {
         "format-wifi": " ",
         "format-ethernet":" ",
-        "format-disconnected": "",
-        "tooltip-format-disconnected": "Error",
-        "tooltip-format-wifi": "{essid} ({signalStrength}%) ",
+        "format-disconnected": " ",
+        "tooltip-format-disconnected": "No Connection",
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)  ",
         "tooltip-format-ethernet": "{ifname} 🖧 ",
         "on-click": "alacritty --class floating -e nmtui"
     },
@@ -143,25 +143,25 @@
         // mute on click
         "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
         "tooltip-format": "{volume}%",
-        "format-icons": [" ", " ", " "]
+        "format-icons": ["", "", ""]
     },
     "custom/powermenu": {
         "on-click": "~/.config/rofi/powermenu/type-2/powermenu.sh",
-        "format": " ",
+        "format": "",
         "tooltip-format": "Power Menu",
         "signal": 6,
 
     },
     "bluetooth": {
-        "format": "",
-        "format-connected": "",
-        "format-connected-battery": " {device_battery_percentage}% ",
-        "on-click": "alacritty --class floating -e bluetui"
+        "format": "",
+        "format-connected": "",
+        "format-connected-battery": "",
+        "on-click": "alacritty --class floating -e bluetui",
         // "format-device-preference": [ "device1", "device2" ], // preference list deciding the displayed device
-        // "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+        // "tooltip-format": "{device_alis} {device_battery_percentage}% ",
         // "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
         // "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
-        // "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%"
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%"
     }
 
 
