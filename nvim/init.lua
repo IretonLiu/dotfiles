@@ -1,4 +1,5 @@
 require("ireton")
+vim.lsp.enable("gopls")
 vim.lsp.enable("ruff")
 vim.lsp.enable("basedpyright")
 -- vim.lsp.enable('luals')
@@ -18,5 +19,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.keymap.set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>")
 		vim.keymap.set("n", "gt", "<cmd>lua vim.lsp.buf.type_definition()<CR>")
 		vim.keymap.set("n", "<leader>e", "<cmd>lua vim.diagnostic.open_float()<CR>")
+	end,
+})
+
+-- Always set working dir to where nvim was started
+vim.api.nvim_create_autocmd("VimEnter", {
+	callback = function()
+		vim.cmd("cd " .. vim.fn.getcwd())
 	end,
 })

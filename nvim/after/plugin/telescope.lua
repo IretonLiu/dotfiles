@@ -1,28 +1,31 @@
 require("telescope").setup({})
+
 local builtin = require("telescope.builtin")
 
--- Custom function to find project root from LSP
-local function project_root_telescope()
+local function get_lsp_root()
 	local clients = vim.lsp.get_active_clients({ bufnr = 0 })
-	local root = nil
-
-	for _, client in pairs(clients) do
-		-- language specific root_dir handling
-		if client.name == "basedpyright" and client.config.root_dir then
-			root = client.config.root_dir
-			break
+	-- get root from first active client
+	if clients and #clients > 0 then
+		for _, client in ipairs(clients) do
+			local root_dir = client.config.root_dir
+			if root_dir then
+				return root_dir
+			end
 		end
 	end
-
-	if root then
-		builtin.find_files({ cwd = root })
-	else
-		builtin.find_files() -- fallback to current dir
-	end
+	return vim.fn.getcwd() -- fallback
 end
 
-vim.keymap.set("n", "<leader>ff", project_root_telescope, { desc = "Find files" })
-vim.keymap.set("n", "<leader>fg", builtin.git_files, { desc = "Find git files" })
+-- Custom function to find project root from LSP
+vim.keymap.set("n", "<leader>ff", function()
+	builtin.find_files({ cwd = get_lsp_root() })
+end, { desc = "Find files from root" })
+
+vim.keymap.set("n", "<leader>fg", function()
+	builtin.live_grep({ cwd = get_lsp_root() })
+end, { desc = "Live grep from root" })
+
 vim.keymap.set("n", "<leader>fs", function()
-	builtin.grep_string({ search = vim.fn.input("Search > ") })
+	builtin.grep_string({ search = vim.fn.input("Search > "), cwd = get_lsp_root() })
 end, { desc = "Find string" })
+get_lsp_root()

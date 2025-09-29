@@ -44,6 +44,13 @@ vim.lsp.config("basedpyright", {
 		},
 	},
 	on_attach = function(client, bufnr)
+		require("lsp_signature").on_attach({
+			bind = true,
+			handler_opts = {
+				border = "rounded",
+			},
+		}, bufnr)
+
 		vim.api.nvim_buf_create_user_command(bufnr, "LspPyrightOrganizeImports", function()
 			client:exec_cmd({
 				command = "basedpyright.organizeimports",

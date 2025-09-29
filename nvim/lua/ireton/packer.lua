@@ -56,6 +56,7 @@ return packer.startup(function(use)
 			{ "rcarriga/nvim-dap-ui" },
 			{ "theHamsta/nvim-dap-virtual-text" },
 			{ "nvim-telescope/telescope-dap.nvim" },
+			{ "mfussenegger/nvim-dap-python" },
 		},
 	})
 	use({ "norcalli/nvim-colorizer.lua" })
@@ -78,8 +79,10 @@ return packer.startup(function(use)
 
 	-- Formatter
 	use({ "stevearc/conform.nvim" })
-
-	-- use { 'sindrets/diffview.nvim' }
+	use({
+		"ray-x/lsp_signature.nvim",
+	})
+	use({ "sindrets/diffview.nvim" })
 	-- use({
 	--     "iamcco/markdown-preview.nvim",
 	--     run = function() vim.fn["mkdp#util#install"]() end,
