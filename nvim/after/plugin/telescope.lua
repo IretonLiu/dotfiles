@@ -3,7 +3,7 @@ require("telescope").setup({})
 local builtin = require("telescope.builtin")
 
 local function get_lsp_root()
-	local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+	local clients = vim.lsp.get_clients({ bufnr = 0 })
 	-- get root from first active client
 	if clients and #clients > 0 then
 		for _, client in ipairs(clients) do
