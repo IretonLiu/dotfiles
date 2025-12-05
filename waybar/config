@@ -141,7 +141,7 @@
         "format": "{icon}",
         "format-muted": "",
         // mute on click
-        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "on-click": "pwvucontrol",
         "tooltip-format": "{volume}%",
         "format-icons": ["", "", ""]
     },
