@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../services" as Services
 
 RowLayout {
     id: root
@@ -7,9 +8,9 @@ RowLayout {
     Layout.leftMargin: 8
     Layout.rightMargin: 8
 
-    property color textColor: "#0F172A"
-    property color accentColor: "#334155"
-    property color mutedColor: "#94A3B8"
+    property color textColor: Services.Theme.highlight
+    property color accentColor: Services.Theme.accent
+    property color mutedColor: Services.Theme.muted
 
     component MonitorItem: Column {
         property string label: ""
@@ -40,8 +41,7 @@ RowLayout {
                 width: 36
                 height: 4
                 radius: 1
-                color: root.accentColor
-                opacity: 0.1
+                color: Services.Theme.track
                 anchors.verticalCenter: parent.verticalCenter
                 
                 Rectangle {
@@ -49,7 +49,7 @@ RowLayout {
                     height: parent.height
                     radius: 1
                     color: root.accentColor
-                    opacity: 0.9
+                    opacity: 1.0 // Full opacity for visibility on dark
                 }
             }
         }

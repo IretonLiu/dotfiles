@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import "../services" as Services
 
 FlowMenu {
     id: root
@@ -29,7 +30,7 @@ FlowMenu {
             Text {
                 text: "󰕾"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 28 // 14 * 2
+                font.pixelSize: 28 
                 color: root.accentColor
             }
             Column {
@@ -37,15 +38,15 @@ FlowMenu {
                 Text {
                     text: "AUDIO_CONTROL"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11 // 10 + 1
+                    font.pixelSize: 11 
                     font.bold: true
-                    color: "#0F172A"
+                    color: Services.Theme.highlight
                 }
                 Text {
                     text: root.defaultSink?.description ?? "Unknown Device"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 9 // 8 + 1
-                    color: "#94A3B8"
+                    font.pixelSize: 9 
+                    color: Services.Theme.muted
                     Layout.preferredWidth: 210
                     elide: Text.ElideRight
                 }
@@ -60,7 +61,7 @@ FlowMenu {
                 id: sliderTrack
                 Layout.preferredWidth: 260
                 Layout.preferredHeight: 6
-                color: Qt.rgba(0, 0, 0, 0.05)
+                color: Services.Theme.track
                 radius: 3
                 
                 readonly property real currentVolume: root.defaultSink?.audio?.volume ?? 0
@@ -98,17 +99,17 @@ FlowMenu {
             Text {
                 text: Math.round((root.defaultSink?.audio?.volume ?? 0) * 100) + "%"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 13 // 12 + 1
+                font.pixelSize: 13 
                 font.bold: true
-                color: "#0F172A"
-                Layout.preferredWidth: 45 // Increased to fit 100%
+                color: Services.Theme.highlight
+                Layout.preferredWidth: 45 
             }
         }
         
         // Mute Toggle
         MouseArea {
             Layout.fillWidth: true
-            Layout.preferredHeight: 40 // Increased height for larger content
+            Layout.preferredHeight: 40 
             cursorShape: Qt.PointingHandCursor
             
             onClicked: {
@@ -118,10 +119,10 @@ FlowMenu {
             
             Rectangle {
                 anchors.fill: parent
-                color: (root.defaultSink?.audio?.muted) ? Qt.rgba(239, 68, 68, 0.1) : Qt.rgba(0, 0, 0, 0.03)
+                color: (root.defaultSink?.audio?.muted) ? Qt.rgba(239, 68, 68, 0.15) : Services.Theme.track
                 radius: 4
                 border.width: 1
-                border.color: (root.defaultSink?.audio?.muted) ? "#EF4444" : "transparent"
+                border.color: (root.defaultSink?.audio?.muted) ? Services.Theme.danger : "transparent"
                 
                 RowLayout {
                     anchors.centerIn: parent
@@ -129,15 +130,15 @@ FlowMenu {
                     Text {
                         text: (root.defaultSink?.audio?.muted) ? "󰝟" : "󰕾"
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 24 // 12 * 2
-                        color: (root.defaultSink?.audio?.muted) ? "#EF4444" : root.accentColor
+                        font.pixelSize: 24 
+                        color: (root.defaultSink?.audio?.muted) ? Services.Theme.danger : root.accentColor
                     }
                     Text {
                         text: (root.defaultSink?.audio?.muted) ? "UNMUTE_SYSTEM" : "MUTE_SYSTEM"
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 11 // 10 + 1
+                        font.pixelSize: 11 
                         font.bold: true
-                        color: (root.defaultSink?.audio?.muted) ? "#EF4444" : "#0F172A"
+                        color: (root.defaultSink?.audio?.muted) ? Services.Theme.danger : Services.Theme.highlight
                     }
                 }
             }

@@ -1,22 +1,45 @@
 import QtQuick
 import QtQuick.Layouts
+import "../services" as Services
 
 Rectangle {
     id: root
     
     default property alias content: innerLayout.data
     property bool showBrackets: true
-    property color accentColor: "#334155"
+    property color accentColor: Services.Theme.accent
     property real padding: 10
 
     implicitWidth: innerLayout.implicitWidth + padding * 2
     implicitHeight: innerLayout.implicitHeight + padding * 2
 
-    color: "#F8FAFC" // Opaque Off-White
-    radius: 4 // Sharper Nordic rounding
+    // --- DARK OPAQUE SURFACE ---
+    color: Services.Theme.surface 
+    radius: 4
     
     border.width: 1
-    border.color: Qt.rgba(0, 0, 0, 0.08)
+    border.color: Services.Theme.border
+
+    // --- SIDE BRACKETS (Arknights Style) ---
+    Rectangle {
+        visible: root.showBrackets
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 2
+        color: root.accentColor
+        opacity: 0.8
+    }
+
+    Rectangle {
+        visible: root.showBrackets
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 2
+        color: root.accentColor
+        opacity: 0.8
+    }
 
     RowLayout {
         id: innerLayout

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../services" as Services
 
 RowLayout {
     id: root
@@ -7,8 +8,8 @@ RowLayout {
     Layout.leftMargin: 8
     Layout.rightMargin: 8
 
-    property color textColor: "#0F172A"
-    property color accentColor: "#334155"
+    property color textColor: Services.Theme.highlight
+    property color accentColor: Services.Theme.accent
 
     Text {
         id: timeText

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "../services" as Services
 
 FlowMenu {
     id: root
@@ -12,7 +13,7 @@ FlowMenu {
         component PowerOption: MouseArea {
             property string icon: ""
             property string label: ""
-            property color color: "#0F172A"
+            property color color: Services.Theme.highlight
             
             Layout.preferredWidth: 160
             Layout.preferredHeight: 32
@@ -20,7 +21,7 @@ FlowMenu {
             
             Rectangle {
                 anchors.fill: parent
-                color: parent.containsMouse ? Qt.rgba(0, 0, 0, 0.05) : "transparent"
+                color: parent.containsMouse ? Services.Theme.surfaceLighter : "transparent"
                 radius: 4
                 
                 RowLayout {
@@ -53,7 +54,7 @@ FlowMenu {
         PowerOption {
             icon: "󰐥"
             label: "SHUTDOWN_HALT"
-            color: "#EF4444"
+            color: Services.Theme.danger
             onClicked: console.log("shutdown")
         }
         

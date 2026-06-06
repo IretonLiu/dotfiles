@@ -8,10 +8,10 @@ RowLayout {
     id: root
     spacing: 12
 
-    property color textColor: "#0F172A"
-    property color accentColor: "#334155"
-    property color mutedColor: "#94A3B8"
-    
+    property color textColor: Services.Theme.highlight
+    property color accentColor: Services.Theme.accent
+    property color mutedColor: Services.Theme.muted
+
     // Signal to notify shell.qml about menu toggles
     signal menuToggle(string name)
 
@@ -77,8 +77,8 @@ RowLayout {
         
         Rectangle {
             anchors.fill: parent
-            color: root.accentColor
-            opacity: parent.containsMouse ? 0.05 : 0
+            color: Services.Theme.accent
+            opacity: parent.containsMouse ? 0.1 : 0
             radius: 4
         }
     }
@@ -107,7 +107,7 @@ RowLayout {
         icon: "󰐥"
         label: "OFF"
         sublabel: "SYS_HALT"
-        iconColor: "#EF4444"
+        iconColor: Services.Theme.danger
         onClicked: root.menuToggle("power")
     }
 }

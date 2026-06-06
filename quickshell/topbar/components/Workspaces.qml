@@ -1,28 +1,29 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Hyprland
+import "../services" as Services
 
 RowLayout {
     id: root
     spacing: 6
 
-    property color accentColor: "#334155"
-    property color mutedColor: "#94A3B8"
-    property color bgColor: "#FFFFFF"
+    property color accentColor: Services.Theme.accent
+    property color mutedColor: Services.Theme.muted
+    property color bgColor: Services.Theme.surface
 
     Repeater {
         model: 10
         delegate: Rectangle {
             id: wsRect
-            width: 30 // Thinner
-            height: 28 // Thinner
+            width: 30 
+            height: 28 
             radius: 3
             
             property bool isFocused: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === index + 1
             
-            color: isFocused ? root.accentColor : Qt.rgba(0, 0, 0, 0.02)
+            color: isFocused ? root.accentColor : Services.Theme.surfaceLighter
             border.width: 1
-            border.color: isFocused ? root.accentColor : Qt.rgba(0, 0, 0, 0.05)
+            border.color: isFocused ? root.accentColor : Services.Theme.border
 
             Column {
                 anchors.centerIn: parent

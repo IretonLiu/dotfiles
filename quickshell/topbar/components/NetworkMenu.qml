@@ -32,14 +32,14 @@ FlowMenu {
                 font.family: "JetBrains Mono"
                 font.pixelSize: 11
                 font.bold: true
-                color: "#0F172A"
+                color: Services.Theme.highlight
             }
         }
         
         Rectangle {
             Layout.preferredWidth: contentWrapper.implicitWidth + 32
             Layout.preferredHeight: 40
-            color: Qt.rgba(0, 0, 0, 0.03)
+            color: Services.Theme.surfaceLighter
             radius: 4
             
             RowLayout {
@@ -51,7 +51,7 @@ FlowMenu {
                 Rectangle {
                     width: 8; height: 8
                     radius: 4
-                    color: Services.Nmcli.isConnected ? "#22C55E" : "#EF4444" 
+                    color: Services.Nmcli.isConnected ? Services.Theme.success : Services.Theme.danger 
                 }
                 
                 Column {
@@ -60,14 +60,14 @@ FlowMenu {
                         font.family: "JetBrains Mono"
                         font.pixelSize: 9
                         font.bold: true
-                        color: Services.Nmcli.isConnected ? "#22C55E" : "#EF4444"
+                        color: Services.Nmcli.isConnected ? Services.Theme.success : Services.Theme.danger
                     }
                     Text {
                         text: Services.Nmcli.active?.ssid ?? (Services.Nmcli.isConnected ? "Wired Connection" : "None")
                         font.family: "JetBrains Mono"
                         font.pixelSize: 11
                         font.bold: true
-                        color: "#0F172A"
+                        color: Services.Theme.highlight
                     }
                 }
             }
@@ -77,7 +77,7 @@ FlowMenu {
             text: Services.Nmcli.scanning ? "SCANNING_FOR_AP..." : "NETWORK_READY"
             font.family: "JetBrains Mono"
             font.pixelSize: 8
-            color: "#94A3B8"
+            color: Services.Theme.muted
             Layout.alignment: Qt.AlignHCenter
         }
     }
