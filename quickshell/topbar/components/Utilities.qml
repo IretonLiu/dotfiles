@@ -1,12 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "../services" as Services
 
 RowLayout {
     id: root
     spacing: 12
+    Layout.leftMargin: 8
+    Layout.rightMargin: 8
 
     property color textColor: Services.Theme.highlight
     property color accentColor: Services.Theme.accent
@@ -18,7 +21,44 @@ RowLayout {
     // Export buttons so shell.qml can anchor menus to them
     property alias audioBtn: audioBtn
     property alias netBtn: netBtn
+    property alias themeBtn: themeBtn
+    property alias btBtn: btBtn
     property alias powerBtn: powerBtn
+
+    Process {
+        id: shellCommand
+        function run(args) {
+            command = args
+            running = true
+        }
+    }
+
+    // --- DECORATIVE: UTILITIES LABEL (Vertical) ---
+    Item {
+        Layout.preferredWidth: 8
+        Layout.fillHeight: true
+        
+        Text {
+            anchors.centerIn: parent
+            text: "SYS"
+            font.family: "JetBrains Mono"
+            font.pixelSize: 9
+            color: root.accentColor
+            opacity: 0.5
+            rotation: -90
+            width: 30
+            horizontalAlignment: Text.AlignHCenter
+        }
+
+        // Vertical anchor bar
+        Rectangle {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: 1; height: parent.height - 8
+            color: root.accentColor
+            opacity: 0.2
+        }
+    }
 
     function getNetworkIcon(strength) {
         if (!Services.Nmcli.isConnected) return "󰤮";
@@ -30,15 +70,53 @@ RowLayout {
     }
 
     component UtilityButton: MouseArea {
+        id: buttonRoot
         property string icon: ""
+        property int iconSize: 24
         property string label: ""
         property string sublabel: ""
         property color iconColor: root.accentColor
+        property bool active: false
         
         implicitWidth: contentRow.implicitWidth + 12
         implicitHeight: 28
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
+
+        // --- HIGHLIGHT ANIMATION ---
+        property bool showHighlight: containsMouse || active
+        
+        Rectangle {
+            id: highlightFrame
+            anchors.centerIn: parent
+            width: parent.width + (showHighlight ? 4 : -4)
+            height: parent.height + (showHighlight ? 4 : -4)
+            opacity: showHighlight ? 0.3 : 0
+            color: "transparent"
+            border.width: 1
+            border.color: iconColor
+            radius: 4
+            
+            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+            Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+            Behavior on opacity { NumberAnimation { duration: 300 } }
+
+            // Scanning corner accents
+            Repeater {
+                model: 4
+                Rectangle {
+                    width: 4; height: 4
+                    color: buttonRoot.iconColor
+                    opacity: highlightFrame.opacity * 2
+                    
+                    anchors.top: index < 2 ? parent.top : undefined
+                    anchors.bottom: index >= 2 ? parent.bottom : undefined
+                    anchors.left: index % 2 == 0 ? parent.left : undefined
+                    anchors.right: index % 2 != 0 ? parent.right : undefined
+                    anchors.margins: -1
+                }
+            }
+        }
         
         RowLayout {
             id: contentRow
@@ -48,13 +126,15 @@ RowLayout {
             Text {
                 text: icon
                 font.family: "JetBrains Mono"
-                font.pixelSize: 24
+                font.pixelSize: buttonRoot.iconSize
                 color: iconColor
+                Layout.alignment: Qt.AlignVCenter
             }
             
             Column {
                 spacing: -2
                 visible: label !== ""
+                Layout.alignment: Qt.AlignVCenter
                 
                 Text {
                     text: label
@@ -89,6 +169,7 @@ RowLayout {
         icon: (Pipewire.defaultAudioSink?.audio?.muted) ? "󰝟" : "󰕾"
         label: Math.round((Pipewire.defaultAudioSink?.audio?.volume ?? 0) * 100) + "%"
         sublabel: "AUDIO_SINK"
+        active: rootWindow.activeMenu === "audio"
         onClicked: root.menuToggle("audio")
     }
 
@@ -98,7 +179,28 @@ RowLayout {
         icon: root.getNetworkIcon(Services.Nmcli.active?.strength ?? 0)
         label: Services.Nmcli.isConnected ? (Services.Nmcli.active?.ssid ?? "CONNECTED") : "OFFLINE"
         sublabel: Services.Nmcli.activeInterface || "NET_DOWN"
+        active: rootWindow.activeMenu === "network"
         onClicked: root.menuToggle("network")
+    }
+
+    // --- THEME TOGGLE ---
+    UtilityButton {
+        id: themeBtn
+        icon: Services.Theme.isLightMode ? "󰃠" : "󰃽"
+        iconSize: 20
+        label: Services.Theme.isLightMode ? "LIGHT" : "DARK"
+        sublabel: "UI_THEME"
+        onClicked: Services.Theme.isLightMode = !Services.Theme.isLightMode
+    }
+
+    // --- BLUETOOTH ---
+    UtilityButton {
+        id: btBtn
+        icon: "󰂯"
+        iconSize: 20
+        label: "BLUETOOTH"
+        sublabel: "BT_SERVICE"
+        onClicked: shellCommand.run(["hyprctl", "dispatch", "exec", "[float] blueman-manager"])
     }
 
     // --- POWER ---
@@ -108,6 +210,7 @@ RowLayout {
         label: "OFF"
         sublabel: "SYS_HALT"
         iconColor: Services.Theme.danger
+        active: rootWindow.activeMenu === "power"
         onClicked: root.menuToggle("power")
     }
 }

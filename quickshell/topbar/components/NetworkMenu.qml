@@ -1,10 +1,20 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../services" as Services
 
 FlowMenu {
     id: root
+    verticalLabel: "NET"
+
+    Process {
+        id: shellCommand
+        function run(args) {
+            command = args
+            running = true
+        }
+    }
     
     function getNetworkIcon(strength) {
         if (!Services.Nmcli.isConnected) return "󰤮";
@@ -16,60 +26,126 @@ FlowMenu {
     }
 
     ColumnLayout {
-        spacing: 12
-        Layout.margins: 10
+        spacing: 14
         
+        // Header
         RowLayout {
             spacing: 12
-            Text {
-                text: root.getNetworkIcon(Services.Nmcli.active?.strength ?? 0)
-                font.family: "JetBrains Mono"
-                font.pixelSize: 28 
-                color: root.accentColor
-            }
-            Text {
-                text: "NETWORK_STATUS"
-                font.family: "JetBrains Mono"
-                font.pixelSize: 11
-                font.bold: true
-                color: Services.Theme.highlight
+            Column {
+                spacing: -2
+                Text {
+                    text: "NETWORK_STATUS"
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: Services.Theme.highlight
+                }
+                Text {
+                    text: Services.Nmcli.activeInterface || "Unknown Interface"
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 9
+                    color: Services.Theme.muted
+                    Layout.preferredWidth: 210
+                    elide: Text.ElideRight
+                }
             }
         }
         
-        Rectangle {
-            Layout.preferredWidth: contentWrapper.implicitWidth + 32
-            Layout.preferredHeight: 40
-            color: Services.Theme.surfaceLighter
-            radius: 4
+        // nmtui Action Button
+        MouseArea {
+            id: nmtuiBtn
+            Layout.fillWidth: true
+            Layout.preferredHeight: 30
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            
+            onClicked: {
+                shellCommand.run(["alacritty", "--class", "floating", "-e", "nmtui"])
+            }
+
+            property bool showHighlight: containsMouse
+            readonly property bool isConnected: Services.Nmcli.isConnected
+            readonly property color baseColor: isConnected ? Services.Theme.success : Services.Theme.danger
+            
+            Rectangle {
+                id: highlightFrame
+                anchors.centerIn: parent
+                width: parent.width + (nmtuiBtn.showHighlight ? 4 : -4)
+                height: parent.height + (nmtuiBtn.showHighlight ? 4 : -4)
+                opacity: nmtuiBtn.showHighlight ? 0.3 : 0
+                color: "transparent"
+                border.width: 1
+                border.color: nmtuiBtn.baseColor
+                radius: 4
+                
+                Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                Behavior on opacity { NumberAnimation { duration: 300 } }
+
+                Repeater {
+                    model: 4
+                    Rectangle {
+                        width: 4; height: 4
+                        color: nmtuiBtn.baseColor
+                        opacity: highlightFrame.opacity * 2
+                        
+                        anchors.top: index < 2 ? parent.top : undefined
+                        anchors.bottom: index >= 2 ? parent.bottom : undefined
+                        anchors.left: index % 2 == 0 ? parent.left : undefined
+                        anchors.right: index % 2 != 0 ? parent.right : undefined
+                        anchors.margins: -1
+                    }
+                }
+            }
             
             RowLayout {
-                id: contentWrapper
-                anchors.fill: parent
-                anchors.margins: 8
-                spacing: 10
+                anchors.centerIn: parent
+                spacing: 16
                 
-                Rectangle {
-                    width: 8; height: 8
-                    radius: 4
-                    color: Services.Nmcli.isConnected ? Services.Theme.success : Services.Theme.danger 
+                Text {
+                    text: "["
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: Services.Theme.muted
                 }
                 
                 Column {
+                    spacing: -2
+                    
                     Text {
-                        text: Services.Nmcli.isConnected ? "CONNECTED" : "DISCONNECTED"
-                        font.family: "JetBrains Mono"
-                        font.pixelSize: 9
-                        font.bold: true
-                        color: Services.Nmcli.isConnected ? Services.Theme.success : Services.Theme.danger
-                    }
-                    Text {
-                        text: Services.Nmcli.active?.ssid ?? (Services.Nmcli.isConnected ? "Wired Connection" : "None")
+                        text: nmtuiBtn.isConnected ? "CONNECTED" : "DISCONNECTED"
                         font.family: "JetBrains Mono"
                         font.pixelSize: 11
                         font.bold: true
-                        color: Services.Theme.highlight
+                        color: nmtuiBtn.baseColor
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    
+                    Text {
+                        text: Services.Nmcli.active?.ssid ?? (nmtuiBtn.isConnected ? "Wired Connection" : "None")
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 7
+                        font.weight: Font.Bold
+                        color: Services.Theme.muted
+                        anchors.horizontalCenter: parent.horizontalCenter
                     }
                 }
+
+                Text {
+                    text: "]"
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 11
+                    font.bold: true
+                    color: Services.Theme.muted
+                }
+            }
+            
+            Rectangle {
+                anchors.fill: parent
+                color: nmtuiBtn.baseColor
+                opacity: parent.containsMouse ? 0.1 : 0
+                radius: 4
             }
         }
         
@@ -78,7 +154,8 @@ FlowMenu {
             font.family: "JetBrains Mono"
             font.pixelSize: 8
             color: Services.Theme.muted
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Qt.AlignLeft
+            Layout.leftMargin: 2
         }
     }
 }

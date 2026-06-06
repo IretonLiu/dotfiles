@@ -21,11 +21,14 @@ Rectangle {
     border.color: Services.Theme.border
 
     // --- SIDE BRACKETS (Arknights Style) ---
+    // Added top/bottomMargin to prevent overlapping rounded corners
     Rectangle {
         visible: root.showBrackets
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        anchors.topMargin: parent.radius
+        anchors.bottomMargin: parent.radius
         width: 2
         color: root.accentColor
         opacity: 0.8
@@ -36,6 +39,8 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        anchors.topMargin: parent.radius
+        anchors.bottomMargin: parent.radius
         width: 2
         color: root.accentColor
         opacity: 0.8

@@ -11,6 +11,8 @@ Item {
     property color accentColor: Services.Theme.accent
     property bool active: false
     
+    property string verticalLabel: ""
+    
     default property alias content: contentWrapper.data
     
     visible: active || animationProgress > 0.01
@@ -39,19 +41,19 @@ Item {
     y: attachTo ? Math.round(attachTo.mapToItem(parent, 0, 0).y + attachTo.height + 18) : 12
 
     // --- DEPTH: SIMULATED SHADOW ---
-    // Fixed: Removed topMargin to prevent "black border" artifact above the menu
-    Rectangle {
-        anchors.fill: container
-        anchors.leftMargin: -4
-        anchors.rightMargin: -4
-        anchors.bottomMargin: -6
-        anchors.topMargin: 0 
-        color: Services.Theme.shadow
-        radius: 8
-        visible: root.animationProgress > 0.5
-        opacity: root.animationProgress * 0.8
-        z: -1
-    }
+    // Fixed: Set topMargin to container.radius to completely prevent shadow bleed in rounded corners
+   // Rectangle {
+   //     anchors.fill: container
+   //     anchors.leftMargin: -4
+   //     anchors.rightMargin: -4
+   //     anchors.bottomMargin: -6
+   //     anchors.topMargin: container.radius
+   //     color: Services.Theme.shadow
+   //     radius: 0
+   //     visible: root.animationProgress > 0.5
+   //     opacity: root.animationProgress * 0.8
+   //     z: -1
+   // }
 
     // --- FLOW CONNECTOR (Vertical from Top) ---
     // Moved outside the clipped container to ensure it renders correctly
@@ -78,8 +80,9 @@ Item {
     Rectangle {
         id: container
         
+        readonly property real labelAreaWidth: root.verticalLabel !== "" ? 20 : 0
         readonly property real targetHeight: contentWrapper.implicitHeight + 32
-        readonly property real targetWidth: contentWrapper.implicitWidth + 32
+        readonly property real targetWidth: contentWrapper.implicitWidth + 32 + container.labelAreaWidth * 2
         
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
@@ -97,19 +100,55 @@ Item {
         opacity: Math.min(1.0, root.animationProgress * 5) 
 
         // --- SIDE BRACKETS (Match Island Style) ---
+        // Added top/bottomMargin to prevent overlapping rounded corners
         Rectangle {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+            anchors.topMargin: parent.radius
+            anchors.bottomMargin: parent.radius
             width: 2
             color: root.accentColor
             opacity: 0.8 * root.animationProgress
+        }
+
+        // --- DECORATIVE: VERTICAL LABEL ---
+        Item {
+            visible: root.verticalLabel !== ""
+            anchors.left: parent.left
+            anchors.leftMargin: 2
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 14
+            
+            Text {
+                anchors.centerIn: parent
+                text: root.verticalLabel
+                font.family: "JetBrains Mono"
+                font.pixelSize: 9
+                color: root.accentColor
+                opacity: 0.5 * root.animationProgress
+                rotation: -90
+                width: 60
+                horizontalAlignment: Text.AlignHCenter
+            }
+            
+            // Vertical anchor bar
+            Rectangle {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                width: 1; height: parent.height - 16
+                color: root.accentColor
+                opacity: 0.2 * root.animationProgress
+            }
         }
 
         Rectangle {
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
+            anchors.topMargin: parent.radius
+            anchors.bottomMargin: parent.radius
             width: 2
             color: root.accentColor
             opacity: 0.8 * root.animationProgress
@@ -128,7 +167,7 @@ Item {
             visible: root.animationProgress > 0.9
         }
         
-        // Content Area
+        // Content Area - Centered for balance
         ColumnLayout {
             id: contentWrapper
             anchors.top: parent.top

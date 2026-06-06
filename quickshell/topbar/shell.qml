@@ -29,7 +29,7 @@ PanelWindow {
 
     mask: Region {
         width: rootWindow.width
-        height: rootWindow.activeMenu !== "" ? rootWindow.height : barRow.height
+        height: rootWindow.activeMenu !== "" ? rootWindow.height : barContainer.height
     }
     
     color: "transparent"
@@ -44,22 +44,42 @@ PanelWindow {
 
     property string activeMenu: ""
 
-    // The Bar Island Row
-    RowLayout {
-        id: barRow
-        height: 40
+    // The Bar Island Container
+    property int barHeight: 40
+    
+    Item {
+        id: barContainer
+        height: rootWindow.barHeight
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        spacing: 16
+        anchors.leftMargin: 4
+        anchors.rightMargin: 4
         z: 10 
 
-        // --- LEFT: WORKSPACES ---
+        // --- LEFT: SYSTEM MONITOR ---
+        RowLayout {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
+            
+            AestheticContainer {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: rootWindow.barHeight - 2
+                accentColor: Services.Theme.accent
+                padding: 4
+                SystemMonitor {
+                    textColor: Services.Theme.highlight
+                    accentColor: Services.Theme.accent
+                    mutedColor: Services.Theme.muted
+                }
+            }
+        }
+
+        // --- CENTER: WORKSPACES ---
         AestheticContainer {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredHeight: 36
+            anchors.centerIn: parent
+            height: rootWindow.barHeight - 2
             accentColor: Services.Theme.accent
             padding: 4
             Workspaces {
@@ -69,50 +89,39 @@ PanelWindow {
             }
         }
 
-        Item { Layout.fillWidth: true }
-
-        // --- CENTER: SYSTEM MONITOR ---
-        AestheticContainer {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredHeight: 36
-            accentColor: Services.Theme.accent
-            padding: 4
-            SystemMonitor {
-                textColor: Services.Theme.highlight
+        // --- RIGHT: UTILITIES & CLOCK ---
+        RowLayout {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
+            spacing: 16
+            
+            AestheticContainer {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
-                mutedColor: Services.Theme.muted
-            }
-        }
-
-        Item { Layout.fillWidth: true }
-
-        // --- RIGHT-CENTER: UTILITIES ---
-        AestheticContainer {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredHeight: 36
-            accentColor: Services.Theme.accent
-            padding: 4
-            Utilities {
-                id: utils
-                textColor: Services.Theme.highlight
-                accentColor: Services.Theme.accent
-                mutedColor: Services.Theme.muted
-                onMenuToggle: (name) => {
-                    if (rootWindow.activeMenu === name) rootWindow.activeMenu = ""
-                    else rootWindow.activeMenu = name
+                padding: 4
+                Utilities {
+                    id: utils
+                    textColor: Services.Theme.highlight
+                    accentColor: Services.Theme.accent
+                    mutedColor: Services.Theme.muted
+                    onMenuToggle: (name) => {
+                        if (rootWindow.activeMenu === name) rootWindow.activeMenu = ""
+                        else rootWindow.activeMenu = name
+                    }
                 }
             }
-        }
 
-        // --- RIGHT: CLOCK ---
-        AestheticContainer {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredHeight: 36
-            accentColor: Services.Theme.accent
-            padding: 4
-            Clock {
-                textColor: Services.Theme.highlight
+            AestheticContainer {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
+                padding: 4
+                Clock {
+                    textColor: Services.Theme.highlight
+                    accentColor: Services.Theme.accent
+                }
             }
         }
     }
