@@ -64,10 +64,13 @@ PanelWindow {
             radius: 2
             opacity: 0.8
             
-            Text {
+            GlitchText {
                 anchors.centerIn: parent
-                text: "APP_ORBITAL_LAUNCHER_V2"
-                font.family: "JetBrains Mono"
+                textData: "APP_ORBITAL_LAUNCHER_V2"
+                periodicInterval: 12000 + Math.random() * 5000
+                totalTicks: 16
+                glitchInterval: 80
+
                 font.pixelSize: 10
                 font.bold: true
                 color: Services.Theme.surface
@@ -80,12 +83,13 @@ PanelWindow {
         // Key handling moved inside the Item
         focus: true
         Keys.onPressed: (event) => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
             if (event.key === Qt.Key_Escape) {
                 Qt.quit();
-            } else if (event.key === Qt.Key_Down) {
+            } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_N)) {
                 resultList.moveDown();
                 event.accepted = true;
-            } else if (event.key === Qt.Key_Up) {
+            } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_P)) {
                 resultList.moveUp();
                 event.accepted = true;
             } else if (event.key === Qt.Key_Return) {

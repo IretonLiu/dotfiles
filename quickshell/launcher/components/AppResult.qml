@@ -71,11 +71,19 @@ Item {
     }
 
     // --- WATERMARK UNDERLAY (Information-as-texture) ---
-    Text {
+    GlitchText {
         anchors.fill: parent
         anchors.margins: 8
-        text: (appEntry?.name ?? "").toUpperCase()
-        font.family: "JetBrains Mono"
+        
+        textData: (appEntry?.name ?? "").toUpperCase()
+        triggerOnTextChanged: false // We control triggering via isSelected
+        periodicInterval: 20000 + Math.random() * 15000
+        totalTicks: 15
+        glitchInterval: 80
+        
+        property bool selected: root.isSelected
+        onSelectedChanged: if (selected) startGlitch()
+
         font.pixelSize: 42 // Larger texture
         font.bold: true
         color: root.isSelected ? Services.Theme.accent : root.baseColor
@@ -133,9 +141,16 @@ Item {
         }
         
         // Technical ID
-        Text {
-            text: "0x" + (index + 100).toString(16).toUpperCase()
-            font.family: "JetBrains Mono"
+        GlitchText {
+            textData: "0x" + (index + 100).toString(16).toUpperCase()
+            triggerOnTextChanged: false
+            periodicInterval: 20000 + Math.random() * 15000
+            totalTicks: 15
+            glitchInterval: 80
+            
+            property bool selected: root.isSelected
+        onSelectedChanged: if (selected) startGlitch()
+
             font.pixelSize: 9
             color: root.baseColor
             opacity: 0.4

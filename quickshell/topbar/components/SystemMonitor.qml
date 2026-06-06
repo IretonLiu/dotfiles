@@ -138,4 +138,10 @@ RowLayout {
         progress: Services.SysUsage.batPerc
         itemColor: progress >= 0.70 ? Services.Theme.success : (progress <= 0.20 ? Services.Theme.danger : root.accentColor)
     }
+
+    MonitorItem {
+        label: "BRIGHTNESS"
+        value: Math.round(Services.SysUsage.brightnessPerc * 100) + "%"
+        progress: Services.SysUsage.brightnessPerc
+    }
 }

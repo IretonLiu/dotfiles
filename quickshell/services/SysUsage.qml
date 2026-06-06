@@ -21,6 +21,9 @@ Singleton {
     readonly property real batPerc: UPower.displayDevice.percentage
     readonly property string batValue: Math.round(batPerc * 100) + "%"
 
+    // Brightness properties
+    property real brightnessPerc: 0
+
     function formatKib(kib) {
         const mib = 1024;
         const gib = 1024 ** 2;
@@ -37,6 +40,21 @@ Singleton {
         onTriggered: {
             stat.reload();
             meminfo.reload();
+            brightnessTask.run(["brightnessctl", "-m"]);
+        }
+    }
+
+    Process {
+        id: brightnessTask
+        function run(args) { command = args; running = true; }
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let parts = text.split(",");
+                if (parts.length >= 4) {
+                    let percStr = parts[3].replace("%", "");
+                    root.brightnessPerc = parseInt(percStr, 10) / 100;
+                }
+            }
         }
     }
 

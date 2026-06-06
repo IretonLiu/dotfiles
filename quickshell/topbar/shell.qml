@@ -55,6 +55,7 @@ PanelWindow {
         anchors.right: parent.right
         anchors.leftMargin: 4
         anchors.rightMargin: 4
+        anchors.topMargin: 1
         z: 10 
 
         // --- LEFT: SYSTEM MONITOR ---

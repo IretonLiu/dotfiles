@@ -1,0 +1,1 @@
+/home/ireton/dotfiles/quickshell/topbar/components/GlitchText.qml

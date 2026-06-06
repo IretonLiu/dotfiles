@@ -114,13 +114,16 @@ RowLayout {
                     }
 
                     // Window Title (Information as Texture)
-                    Text {
+                    GlitchText {
                         id: textureText
                         visible: wsRect.isFocused
                         Layout.fillWidth: true
                         Layout.rightMargin: 8
-                        text: (Hyprland.activeToplevel?.title || "UNKNOWN").toUpperCase() 
-                        font.family: "JetBrains Mono"
+                        
+                        textData: isFocused && Hyprland.activeToplevel ? (Hyprland.activeToplevel.title || "UNKNOWN").toUpperCase() : ""
+                        periodicInterval: 25000 + Math.random() * 10000
+                        totalTicks: 12
+
                         font.pixelSize: 10
                         font.bold: true
                         color: root.bgColor
