@@ -190,7 +190,7 @@ RowLayout {
         iconSize: 20
         label: Services.Theme.isLightMode ? "LIGHT" : "DARK"
         sublabel: "UI_THEME"
-        onClicked: Services.Theme.isLightMode = !Services.Theme.isLightMode
+        onClicked: Services.Theme.toggle()
     }
 
     // --- BLUETOOTH ---

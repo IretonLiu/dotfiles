@@ -122,20 +122,20 @@ RowLayout {
 
     MonitorItem {
         label: "CPU_LOAD"
-        value: "24.5%"
-        progress: 0.245
+        value: Math.round(Services.SysUsage.cpuPerc * 100) + "%"
+        progress: Services.SysUsage.cpuPerc
     }
 
     MonitorItem {
         label: "MEM_USAGE"
-        value: "4.2GB"
-        progress: 0.42
+        value: Services.SysUsage.formatKib(Services.SysUsage.memUsed)
+        progress: Services.SysUsage.memPerc
     }
 
     MonitorItem {
         label: "BAT_LEVEL"
-        value: "86.0%"
-        progress: 0.86
+        value: Services.SysUsage.batValue
+        progress: Services.SysUsage.batPerc
         itemColor: progress >= 0.70 ? Services.Theme.success : (progress <= 0.20 ? Services.Theme.danger : root.accentColor)
     }
 }
