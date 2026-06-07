@@ -98,14 +98,15 @@ PanelWindow {
             }
         }
         
-        // Drop shadow effect
+        // Drop shadow effect (Bottom-Right Offset)
         Rectangle {
             anchors.fill: parent
-            anchors.leftMargin: -4
-            anchors.rightMargin: -4
-            anchors.bottomMargin: -6
-            anchors.topMargin: parent.radius
+            anchors.leftMargin: 8 // Tucked in on the left
+            anchors.rightMargin: -10
+            anchors.bottomMargin: -15
+            anchors.topMargin: 10
             color: Services.Theme.shadow
+            opacity: 1.0
             z: -1
             radius: 4
         }

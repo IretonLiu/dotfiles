@@ -58,11 +58,12 @@ PanelWindow {
         anchors.topMargin: 1
         z: 10 
 
-        // --- LEFT: SYSTEM MONITOR ---
+        // --- LEFT: SYSTEM MONITOR & MEDIA ---
         RowLayout {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
+            spacing: 8
             
             AestheticContainer {
                 Layout.alignment: Qt.AlignVCenter
@@ -70,6 +71,19 @@ PanelWindow {
                 accentColor: Services.Theme.accent
                 padding: 4
                 SystemMonitor {
+                    textColor: Services.Theme.highlight
+                    accentColor: Services.Theme.accent
+                    mutedColor: Services.Theme.muted
+                }
+            }
+
+            AestheticContainer {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: rootWindow.barHeight - 2
+                accentColor: Services.Theme.accent
+                padding: 4
+                visible: Services.Media.active !== null
+                MediaPlayer {
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
                     mutedColor: Services.Theme.muted

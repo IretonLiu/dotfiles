@@ -52,5 +52,5 @@ Item {
     property color track: isLightMode ? Qt.rgba(0, 0, 0, 0.18) : Qt.rgba(255, 255, 255, 0.12)
     property color surfaceLighter: isLightMode ? Qt.rgba(0, 0, 0, 0.05) : Qt.rgba(255, 255, 255, 0.05)
     property color surfaceDarker: isLightMode ? "#D8DDD8" : "#0F1112"
-    property color shadow: isLightMode ? Qt.rgba(0, 0, 0, 0.20) : Qt.rgba(0, 0, 0, 0.8)
+    property color shadow: isLightMode ? "#32543c" : "#4B3E70" // 55% darker than accents in HSV value
 }

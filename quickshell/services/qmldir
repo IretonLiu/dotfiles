@@ -1,3 +1,4 @@
 singleton Nmcli 1.0 Nmcli.qml
 singleton Theme 1.0 Theme.qml
 singleton SysUsage 1.0 SysUsage.qml
+singleton Media 1.0 Media.qml

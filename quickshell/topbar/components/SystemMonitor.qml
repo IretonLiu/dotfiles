@@ -12,7 +12,7 @@ RowLayout {
     property color accentColor: Services.Theme.accent
     property color mutedColor: Services.Theme.muted
 
-    // --- DECORATIVE: TELEMETRY LABEL (Vertical) ---
+    // --- DECORATIVE: TELEMETRY LABEL ---
     Item {
         Layout.preferredWidth: 8
         Layout.fillHeight: true
@@ -29,7 +29,6 @@ RowLayout {
             horizontalAlignment: Text.AlignHCenter
         }
         
-        // Vertical anchor bar
         Rectangle {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -43,7 +42,6 @@ RowLayout {
         property string label: ""
         property string value: ""
         property real progress: 0
-        property string techCode: "0x" + Math.round(progress * 255).toString(16).toUpperCase()
         property color itemColor: root.accentColor
         
         spacing: 1
@@ -57,13 +55,6 @@ RowLayout {
                 font.weight: Font.Bold
                 color: root.mutedColor
             }
-            Text {
-                text: techCode
-                font.family: "JetBrains Mono"
-                font.pixelSize: 8
-                color: itemColor
-                opacity: 0.6
-            }
         }
         
         Row {
@@ -76,71 +67,70 @@ RowLayout {
                 color: root.textColor
             }
             
-            // --- SEGMENTED BAR ---
-            Rectangle {
+            // --- NEW STYLE: GEOMETRIC MINIMALIST BAR ---
+            Item {
                 width: 42
-                height: 5
-                color: Services.Theme.track
-                radius: 1
+                height: 4
                 anchors.verticalCenter: parent.verticalCenter
                 
-                // Progress Fill
+                // Track Background
                 Rectangle {
-                    width: parent.width * progress
-                    height: parent.height
-                    color: itemColor
+                    anchors.fill: parent
+                    color: Services.Theme.track
+                    opacity: 0.3
                     radius: 1
-                    
-                    // Texture: Internal segments
-                    Row {
-                        anchors.fill: parent
-                        spacing: 3
-                        clip: true
-                        Repeater {
-                            model: 10
-                            Rectangle {
-                                width: 1; height: parent.height
-                                color: Services.Theme.surfaceDarker
-                                opacity: 0.3
-                            }
-                        }
-                    }
                 }
                 
-                // End Cap Marker
+                // Progress Fill (Solid & Clean)
+                Rectangle {
+                    width: parent.width * progress
+                    height: 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: itemColor
+                    radius: 1
+                }
+                
+                // Start Marker
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 2; height: 6
+                    color: itemColor
+                }
+
+                // End Marker (Always visible at the end of the track)
                 Rectangle {
                     anchors.right: parent.right
-                    anchors.rightMargin: -2
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 1; height: 8
-                    color: itemColor
-                    opacity: 0.5
+                    width: 1; height: 6
+                    color: root.mutedColor
+                    opacity: 0.4
                 }
             }
         }
     }
 
     MonitorItem {
-        label: "CPU_LOAD"
+        label: "CPU"
         value: Math.round(Services.SysUsage.cpuPerc * 100) + "%"
         progress: Services.SysUsage.cpuPerc
     }
 
     MonitorItem {
-        label: "MEM_USAGE"
+        label: "MEM"
         value: Services.SysUsage.formatKib(Services.SysUsage.memUsed)
         progress: Services.SysUsage.memPerc
     }
 
     MonitorItem {
-        label: "BAT_LEVEL"
+        label: "BAT"
         value: Services.SysUsage.batValue
         progress: Services.SysUsage.batPerc
         itemColor: progress >= 0.70 ? Services.Theme.success : (progress <= 0.20 ? Services.Theme.danger : root.accentColor)
     }
 
     MonitorItem {
-        label: "BRIGHTNESS"
+        label: "BRI"
         value: Math.round(Services.SysUsage.brightnessPerc * 100) + "%"
         progress: Services.SysUsage.brightnessPerc
     }
