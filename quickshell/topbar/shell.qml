@@ -31,7 +31,7 @@ PanelWindow {
     }
     
     implicitHeight: screen.height 
-    WlrLayershell.exclusiveZone: 40
+    WlrLayershell.exclusiveZone: 52
     WlrLayershell.layer: WlrLayer.Top
 
     mask: Region {
@@ -56,7 +56,7 @@ PanelWindow {
     }
 
     // The Bar Island Container
-    property int barHeight: 40
+    property int barHeight: 48
     
     Item {
         id: barContainer
@@ -66,7 +66,7 @@ PanelWindow {
         anchors.right: parent.right
         anchors.leftMargin: 4
         anchors.rightMargin: 4
-        anchors.topMargin: 1
+        anchors.topMargin: 3
         z: 10 
 
         // --- LEFT: SYSTEM MONITOR, CLOCK & MEDIA ---

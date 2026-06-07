@@ -4,9 +4,9 @@ import "../services" as Services
 
 RowLayout {
     id: root
-    spacing: 16
-    Layout.leftMargin: 12
-    Layout.rightMargin: 12
+    spacing: 18
+    Layout.leftMargin: 14
+    Layout.rightMargin: 14
 
     property color textColor: Services.Theme.highlight
     property color accentColor: Services.Theme.accent
@@ -51,7 +51,7 @@ RowLayout {
             Text {
                 text: label
                 font.family: "JetBrains Mono"
-                font.pixelSize: 8
+                font.pixelSize: 9
                 font.weight: Font.Bold
                 color: root.mutedColor
             }
@@ -62,14 +62,14 @@ RowLayout {
             Text {
                 text: value
                 font.family: "JetBrains Mono"
-                font.pixelSize: 13
+                font.pixelSize: 14
                 font.bold: true
                 color: root.textColor
             }
             
             // --- NEW STYLE: GEOMETRIC MINIMALIST BAR ---
             Item {
-                width: 42
+                width: 46
                 height: 4
                 anchors.verticalCenter: parent.verticalCenter
                 

@@ -5,9 +5,9 @@ import "../services" as Services
 
 RowLayout {
     id: root
-    spacing: 12
-    Layout.leftMargin: 8
-    Layout.rightMargin: 8
+    spacing: 14
+    Layout.leftMargin: 10
+    Layout.rightMargin: 10
 
     property color accentColor: Services.Theme.accent
     property color mutedColor: Services.Theme.muted
@@ -41,7 +41,7 @@ RowLayout {
     }
 
     Row {
-        spacing: 8
+        spacing: 10
         Repeater {
             model: 10
             delegate: Rectangle {
@@ -56,11 +56,11 @@ RowLayout {
                 width: {
                     if (!visible) return 0;
                     if (isFocused && Hyprland.activeToplevel) {
-                        return Math.min(220, Math.max(64, textureText.implicitWidth + 40));
+                        return Math.min(240, Math.max(72, textureText.implicitWidth + 48));
                     }
-                    return 16; // Highly collapsed inactive tab
+                    return 18; // Highly collapsed inactive tab
                 }
-                height: 30 
+                height: 32 
                 radius: 2
                 clip: true
                 
@@ -95,7 +95,7 @@ RowLayout {
                     Text {
                         text: wsId
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.bold: true
                         color: wsRect.isFocused ? root.bgColor : root.mutedColor
                         opacity: wsRect.isFocused ? 1 : 0.8
@@ -124,7 +124,7 @@ RowLayout {
                         periodicInterval: 25000 + Math.random() * 10000
                         totalTicks: 12
 
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         font.bold: true
                         color: root.bgColor
                         opacity: 0.4

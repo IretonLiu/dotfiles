@@ -4,9 +4,9 @@ import "../services" as Services
 
 RowLayout {
     id: root
-    spacing: 12
-    Layout.leftMargin: 8
-    Layout.rightMargin: 8
+    spacing: 14
+    Layout.leftMargin: 10
+    Layout.rightMargin: 10
 
     property color textColor: Services.Theme.highlight
     property color accentColor: Services.Theme.accent
@@ -42,8 +42,8 @@ RowLayout {
         id: clockBtn
         property bool showDate: false
         
-        implicitWidth: contentRow.implicitWidth + 12
-        implicitHeight: 28
+        implicitWidth: contentRow.implicitWidth + 16
+        implicitHeight: 32
         Layout.alignment: Qt.AlignVCenter
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
@@ -51,11 +51,11 @@ RowLayout {
         function updateDisplay() {
             if (showDate) {
                 timeText.text = Qt.formatDateTime(new Date(), "ddd, MMM d")
-                timeText.font.pixelSize = 13
+                timeText.font.pixelSize = 14
                 subtitleText.text = "SYS_DATE"
             } else {
                 timeText.text = Qt.formatDateTime(new Date(), "HH:mm")
-                timeText.font.pixelSize = 17
+                timeText.font.pixelSize = 19
                 subtitleText.text = "SYS_TIME"
             }
         }
@@ -105,7 +105,7 @@ RowLayout {
         RowLayout {
             id: contentRow
             anchors.centerIn: parent
-            spacing: 12
+            spacing: 14
             
             Text {
                 id: timeText
@@ -128,7 +128,7 @@ RowLayout {
                 Text {
                     id: subtitleText
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.weight: Font.Bold
                     color: root.accentColor
                     opacity: 0.8
@@ -137,7 +137,7 @@ RowLayout {
                 Text {
                     text: "UTC+2"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     color: root.textColor
                     opacity: 0.5
                 }

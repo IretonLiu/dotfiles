@@ -7,9 +7,9 @@ import "../services" as Services
 
 RowLayout {
     id: root
-    spacing: 12
-    Layout.leftMargin: 8
-    Layout.rightMargin: 8
+    spacing: 14
+    Layout.leftMargin: 10
+    Layout.rightMargin: 10
 
     property color textColor: Services.Theme.highlight
     property color accentColor: Services.Theme.accent
@@ -79,8 +79,8 @@ RowLayout {
         property color iconColor: root.accentColor
         property bool active: false
         
-        implicitWidth: contentRow.implicitWidth + 12
-        implicitHeight: 28
+        implicitWidth: contentRow.implicitWidth + 16
+        implicitHeight: 32
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
 
@@ -122,7 +122,7 @@ RowLayout {
         RowLayout {
             id: contentRow
             anchors.centerIn: parent
-            spacing: 10
+            spacing: 12
             
             Text {
                 text: icon
@@ -140,7 +140,7 @@ RowLayout {
                 Text {
                     text: label
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.bold: true
                     color: root.textColor
                 }
@@ -148,7 +148,7 @@ RowLayout {
                 Text {
                     text: sublabel
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     font.weight: Font.Bold
                     color: root.mutedColor
                     visible: sublabel !== ""
