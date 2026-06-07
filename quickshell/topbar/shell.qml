@@ -2,12 +2,19 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "services" as Services
 import "components"
 
 PanelWindow {
     id: rootWindow
+
+    Process {
+        id: polkitAgent
+
+        command: ["systemctl", "--user", "start", "hyprpolkitagent.service"]
+    }
     
     // --- PIPEWIRE TRACKING ---
     PwObjectTracker {
@@ -44,6 +51,10 @@ PanelWindow {
 
     property string activeMenu: ""
 
+    Component.onCompleted: {
+        polkitAgent.running = true
+    }
+
     // The Bar Island Container
     property int barHeight: 40
     
@@ -58,13 +69,24 @@ PanelWindow {
         anchors.topMargin: 1
         z: 10 
 
-        // --- LEFT: SYSTEM MONITOR & MEDIA ---
+        // --- LEFT: SYSTEM MONITOR, CLOCK & MEDIA ---
         RowLayout {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             spacing: 8
             
+            AestheticContainer {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: rootWindow.barHeight - 2
+                accentColor: Services.Theme.accent
+                padding: 4
+                Clock {
+                    textColor: Services.Theme.highlight
+                    accentColor: Services.Theme.accent
+                }
+            }
+
             AestheticContainer {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.preferredHeight: rootWindow.barHeight - 2
@@ -128,16 +150,6 @@ PanelWindow {
                 }
             }
 
-            AestheticContainer {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredHeight: rootWindow.barHeight - 2
-                accentColor: Services.Theme.accent
-                padding: 4
-                Clock {
-                    textColor: Services.Theme.highlight
-                    accentColor: Services.Theme.accent
-                }
-            }
         }
     }
     
@@ -164,6 +176,15 @@ PanelWindow {
         id: powerMenu
         active: rootWindow.activeMenu === "power"
         attachTo: utils.powerBtn
+        accentColor: Services.Theme.accent
+        surfaceColor: Services.Theme.surface
+        z: 20
+    }
+
+    VpnMenu {
+        id: vpnMenu
+        active: rootWindow.activeMenu === "vpn"
+        attachTo: utils.wgBtn
         accentColor: Services.Theme.accent
         surfaceColor: Services.Theme.surface
         z: 20

@@ -108,7 +108,7 @@ mods = "Control|Shift"
 
 [window]
 decorations = "none"
-opacity = 0.96
+opacity = 1.0
 
 [window.padding]
 x =2 

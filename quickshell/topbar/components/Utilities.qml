@@ -23,6 +23,7 @@ RowLayout {
     property alias netBtn: netBtn
     property alias themeBtn: themeBtn
     property alias btBtn: btBtn
+    property alias wgBtn: wgBtn
     property alias powerBtn: powerBtn
 
     Process {
@@ -166,8 +167,8 @@ RowLayout {
     // --- SOUND ---
     UtilityButton {
         id: audioBtn
-        icon: (Pipewire.defaultAudioSink?.audio?.muted) ? "󰝟" : "󰕾"
-        label: Math.round((Pipewire.defaultAudioSink?.audio?.volume ?? 0) * 100) + "%"
+        icon: (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio && Pipewire.defaultAudioSink.audio.muted) ? "󰝟" : "󰕾"
+        label: Math.round((Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio ? Pipewire.defaultAudioSink.audio.volume : 0) * 100) + "%"
         sublabel: "AUDIO_SINK"
         active: rootWindow.activeMenu === "audio"
         onClicked: root.menuToggle("audio")
@@ -176,11 +177,23 @@ RowLayout {
     // --- NETWORK ---
     UtilityButton {
         id: netBtn
-        icon: root.getNetworkIcon(Services.Nmcli.active?.strength ?? 0)
-        label: Services.Nmcli.isConnected ? (Services.Nmcli.active?.ssid ?? "CONNECTED") : "OFFLINE"
+        icon: root.getNetworkIcon(Services.Nmcli.active ? Services.Nmcli.active.strength : 0)
+        label: Services.Nmcli.isConnected ? (Services.Nmcli.active ? Services.Nmcli.active.ssid : "CONNECTED") : "OFFLINE"
         sublabel: Services.Nmcli.activeInterface || "NET_DOWN"
         active: rootWindow.activeMenu === "network"
         onClicked: root.menuToggle("network")
+    }
+
+    // --- WIREGUARD ---
+    UtilityButton {
+        id: wgBtn
+        icon: "󰖂"
+        iconSize: 20
+        label: Services.Vpn.connected ? "SECURE" : "UNSECURE"
+        sublabel: Services.Vpn.connected ? Services.Vpn.activeInterface.toUpperCase() : "VPN_OFF"
+        iconColor: Services.Vpn.connected ? Services.Theme.success : root.accentColor
+        active: rootWindow.activeMenu === "vpn"
+        onClicked: root.menuToggle("vpn")
     }
 
     // --- THEME TOGGLE ---

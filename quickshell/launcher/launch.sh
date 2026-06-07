@@ -1,16 +1,19 @@
 #!/bin/bash
-# Quickshell Launcher Singleton Wrapper
-# Uses Quickshell's native instance listing for reliable detection
+set -euo pipefail
 
-LAUNCHER_PATH="/home/ireton/dotfiles/quickshell/launcher/shell.qml"
+LAUNCHER_DIR="$HOME/dotfiles/quickshell/launcher"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell-launcher"
+VISIBILITY_FILE="$STATE_DIR/visible"
 
-# Extract instance ID if already running
-INST_ID=$(qs list --all | grep -B 3 "$LAUNCHER_PATH" | grep "Instance" | awk '{print $2}' | sed 's/://')
+mkdir -p "$STATE_DIR"
 
-if [ -n "$INST_ID" ]; then
-    # Already running: kill it to toggle off
-    qs kill "$INST_ID"
+if pgrep -u "$USER" -f "qs .*${LAUNCHER_DIR}|qs -p ${LAUNCHER_DIR}" >/dev/null 2>&1; then
+    if [ -f "$VISIBILITY_FILE" ] && [ "$(cat "$VISIBILITY_FILE" 2>/dev/null)" = "true" ]; then
+        printf 'false' > "$VISIBILITY_FILE"
+    else
+        printf 'true' > "$VISIBILITY_FILE"
+    fi
 else
-    # Not running: launch it
-    qs -p "/home/ireton/dotfiles/quickshell/launcher"
+    printf 'true' > "$VISIBILITY_FILE"
+    qs -p "$LAUNCHER_DIR" >/dev/null 2>&1 &
 fi

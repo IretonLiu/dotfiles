@@ -29,16 +29,22 @@ Item {
     width: container.targetWidth
     height: container.targetHeight
 
-    // Horizontal centering with screen edge clamping
-    x: {
-        if (!attachTo || !parent) return parent ? parent.width - width - 12 : 0;
-        let mappedX = attachTo.mapToItem(parent, 0, 0).x;
-        let centerX = mappedX + attachTo.width / 2 - width / 2;
-        return Math.max(12, Math.min(parent.width - width - 12, centerX));
+    function updatePosition() {
+        if (!attachTo || !parent) return;
+        
+        // Get absolute position of the button
+        let absPos = attachTo.mapToItem(null, 0, 0);
+        // Map it back to our parent's coordinate system
+        let localPos = parent.mapFromItem(null, absPos.x, absPos.y);
+        
+        let centerX = localPos.x + attachTo.width / 2 - width / 2;
+        x = Math.max(12, Math.min(parent.width - width - 12, centerX));
+        y = Math.round(localPos.y + attachTo.height + 18);
     }
-    
-    // Positioned directly below the button
-    y: attachTo ? Math.round(attachTo.mapToItem(parent, 0, 0).y + attachTo.height + 18) : 12
+
+    onActiveChanged: if (active) updatePosition()
+    onAttachToChanged: updatePosition()
+    onWidthChanged: updatePosition()
 
     // --- DEPTH: SIMULATED SHADOW ---
     // Fixed: Set topMargin to container.radius to completely prevent shadow bleed in rounded corners

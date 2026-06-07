@@ -11,6 +11,11 @@ Item {
     function forceActiveFocus() {
         textInput.forceActiveFocus()
     }
+
+    function clear() {
+        textInput.text = ""
+        root.textChanged("")
+    }
     
     // Base background wash
     Rectangle {
