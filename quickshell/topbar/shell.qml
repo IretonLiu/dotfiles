@@ -70,15 +70,23 @@ PanelWindow {
         z: 10 
 
         // --- LEFT: SYSTEM MONITOR, CLOCK & MEDIA ---
-        RowLayout {
+        Item {
+            id: leftGroup
+            readonly property real spacing: 8
+            readonly property real minimumContentWidth: clockIsland.implicitWidth + systemIsland.implicitWidth + spacing
+
             anchors.left: parent.left
+            anchors.right: workspaceIsland.left
+            anchors.rightMargin: spacing
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
-            spacing: 8
+            clip: true
             
             AestheticContainer {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredHeight: rootWindow.barHeight - 2
+                id: clockIsland
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                height: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
                 padding: 4
                 Clock {
@@ -88,8 +96,11 @@ PanelWindow {
             }
 
             AestheticContainer {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredHeight: rootWindow.barHeight - 2
+                id: systemIsland
+                anchors.left: clockIsland.right
+                anchors.leftMargin: leftGroup.spacing
+                anchors.verticalCenter: parent.verticalCenter
+                height: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
                 padding: 4
                 SystemMonitor {
@@ -100,12 +111,18 @@ PanelWindow {
             }
 
             AestheticContainer {
-                Layout.alignment: Qt.AlignVCenter
-                Layout.preferredHeight: rootWindow.barHeight - 2
+                id: mediaIsland
+                anchors.left: systemIsland.right
+                anchors.leftMargin: leftGroup.spacing
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(240, Math.max(0, leftGroup.width - x))
+                height: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
                 padding: 4
-                visible: Services.Media.active !== null
+                visible: Services.Media.active !== null && width > 0
+                clip: true
                 MediaPlayer {
+                    Layout.preferredWidth: Math.max(0, mediaIsland.width - mediaIsland.padding * 2)
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
                     mutedColor: Services.Theme.muted
@@ -115,10 +132,15 @@ PanelWindow {
 
         // --- CENTER: WORKSPACES ---
         AestheticContainer {
+            id: workspaceIsland
+            readonly property real maxCenteredWidth: Math.max(120, 2 * Math.min(parent.width / 2 - leftGroup.minimumContentWidth - 8, rightGroup.x - parent.width / 2 - 8))
+
             anchors.centerIn: parent
             height: rootWindow.barHeight - 2
+            width: Math.min(implicitWidth, maxCenteredWidth)
             accentColor: Services.Theme.accent
             padding: 4
+            clip: true
             Workspaces {
                 accentColor: Services.Theme.accent
                 mutedColor: Services.Theme.muted
@@ -128,6 +150,7 @@ PanelWindow {
 
         // --- RIGHT: UTILITIES & CLOCK ---
         RowLayout {
+            id: rightGroup
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
@@ -149,7 +172,6 @@ PanelWindow {
                     }
                 }
             }
-
         }
     }
     

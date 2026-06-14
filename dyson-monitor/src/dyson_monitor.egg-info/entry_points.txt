@@ -1,0 +1,2 @@
+[console_scripts]
+dyson-monitor = dyson_monitor.cli:main

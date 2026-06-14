@@ -1,0 +1,15 @@
+{
+  "poll_interval_seconds": 5,
+  "provider": {
+    "type": "mock",
+    "name": "Bedroom Dyson"
+  },
+  "sinks": {
+    "console": true,
+    "prometheus": {
+      "enabled": true,
+      "host": "127.0.0.1",
+      "port": 9109
+    }
+  }
+}

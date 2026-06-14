@@ -110,7 +110,7 @@ Item {
             // Icon rendering (Simple for now, could use a real icon provider)
             Text {
                 anchors.centerIn: parent
-                text: "󰀻" // Default app icon
+                text: appEntry?.isCommand ? "󰆍" : "󰀻" // Default app icon
                 font.family: "JetBrains Mono"
                 font.pixelSize: 32
                 color: root.baseColor
@@ -131,7 +131,7 @@ Item {
             }
             
             Text {
-                text: appEntry?.comment || appEntry?.execString || "SYS_PROCESS_ENTRY"
+                text: appEntry?.isCommand ? appEntry.execString : (appEntry?.comment || appEntry?.execString || "SYS_PROCESS_ENTRY")
                 font.family: "JetBrains Mono"
                 font.pixelSize: 9
                 color: Services.Theme.muted

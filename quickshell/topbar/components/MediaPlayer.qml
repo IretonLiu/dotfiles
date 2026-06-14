@@ -6,6 +6,7 @@ import "../services" as Services
 RowLayout {
     id: root
     spacing: 10
+    clip: true
     
     // Explicit sizing for AestheticContainer
     implicitHeight: 28
@@ -50,6 +51,8 @@ RowLayout {
         id: trackInfo
         spacing: -3
         Layout.preferredWidth: 130
+        Layout.minimumWidth: 36
+        Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         clip: true
         
@@ -85,6 +88,8 @@ RowLayout {
                 color: root.textColor
                 
                 readonly property bool needsScroll: implicitWidth > parent.width
+                onTextChanged: x = 0
+                onNeedsScrollChanged: if (!needsScroll) x = 0
                 
                 SequentialAnimation on x {
                     running: scrollingTitle.needsScroll
@@ -92,6 +97,7 @@ RowLayout {
                     
                     PauseAnimation { duration: 2000 }
                     NumberAnimation {
+                        from: 0
                         to: -(scrollingTitle.implicitWidth - parent.width)
                         duration: Math.max(2000, (scrollingTitle.implicitWidth - parent.width) * 30)
                         easing.type: Easing.Linear
@@ -119,6 +125,8 @@ RowLayout {
                 color: root.mutedColor
                 
                 readonly property bool needsScroll: implicitWidth > parent.width
+                onTextChanged: x = 0
+                onNeedsScrollChanged: if (!needsScroll) x = 0
                 
                 SequentialAnimation on x {
                     running: scrollingArtist.needsScroll
@@ -126,6 +134,7 @@ RowLayout {
                     
                     PauseAnimation { duration: 3000 }
                     NumberAnimation {
+                        from: 0
                         to: -(scrollingArtist.implicitWidth - parent.width)
                         duration: Math.max(2000, (scrollingArtist.implicitWidth - parent.width) * 40)
                         easing.type: Easing.Linear
@@ -145,6 +154,7 @@ RowLayout {
         id: controlsRow
         spacing: 1
         Layout.alignment: Qt.AlignVCenter
+        visible: root.width >= 145
 
         component ControlButton: MouseArea {
             id: btn
@@ -189,7 +199,8 @@ RowLayout {
         id: progressCol
         spacing: 1
         Layout.alignment: Qt.AlignVCenter
-        visible: root.player && root.player.length > 0
+        Layout.rightMargin: 14
+        visible: root.player && root.player.length > 0 && root.width >= 210
         
         Row {
             spacing: 6

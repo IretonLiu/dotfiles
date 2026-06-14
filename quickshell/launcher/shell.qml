@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Io
 import "services" as Services
 import "components"
@@ -9,12 +10,17 @@ import "components"
 PanelWindow {
     id: rootWindow
 
+    screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
+
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-launcher"
     readonly property string visibleFile: rootWindow.stateDir + "/visible"
+    readonly property string usageFile: rootWindow.stateDir + "/usage.json"
 
     property bool launcherVisible: false
+    property bool launchInProgress: false
     property real animationProgress: launcherVisible ? 1.0 : 0.0
     property string queryText: ""
+    property var usageCounts: ({})
 
     Behavior on animationProgress {
         NumberAnimation {
@@ -23,16 +29,125 @@ PanelWindow {
         }
     }
     property var allApps: DesktopEntries.applications.values
-    property var filteredApps: {
-        if (queryText === "")
-            return allApps;
-        return allApps.filter(app => app.name.toLowerCase().includes(queryText.toLowerCase()) || (app.comment && app.comment.toLowerCase().includes(queryText.toLowerCase())));
+    property var filteredApps: launcherEntries(queryText)
+
+    function appKey(app) {
+        return app?.id || app?.name || app?.command || app?.execString || "unknown";
+    }
+
+    function usageFor(app) {
+        return usageCounts[appKey(app)] || 0;
+    }
+
+    function fuzzyScore(app, query) {
+        const q = query.trim().toLowerCase();
+        if (q === "")
+            return 0;
+
+        const haystack = `${app?.name || ""} ${app?.comment || ""} ${app?.execString || ""} ${app?.command || ""}`.toLowerCase();
+        let qi = 0;
+        let score = 0;
+        let streak = 0;
+
+        for (let i = 0; i < haystack.length && qi < q.length; i++) {
+            if (haystack[i] !== q[qi]) {
+                streak = 0;
+                continue;
+            }
+
+            score += 10 + streak * 8;
+            if (i === 0 || [" ", "-", "_", ".", "/"].includes(haystack[i - 1]))
+                score += 8;
+            streak++;
+            qi++;
+        }
+
+        if (qi !== q.length)
+            return -1;
+
+        const name = (app?.name || "").toLowerCase();
+        if (name === q)
+            score += 120;
+        else if (name.startsWith(q))
+            score += 80;
+        else if (name.includes(q))
+            score += 40;
+
+        return score;
+    }
+
+    function sortedApps(query) {
+        const q = query.trim();
+        return allApps.map(app => ({ app, score: fuzzyScore(app, q), usage: usageFor(app) }))
+            .filter(entry => q === "" || entry.score >= 0)
+            .sort((a, b) => {
+                if (q !== "") {
+                    const scoreDiff = b.score - a.score;
+                    if (scoreDiff !== 0)
+                        return scoreDiff;
+                }
+
+                const usageDiff = b.usage - a.usage;
+                if (usageDiff !== 0)
+                    return usageDiff;
+
+                return (a.app?.name || "").localeCompare(b.app?.name || "");
+            })
+            .map(entry => entry.app);
+    }
+
+    function commandForQuery(query) {
+        const q = query.trim();
+        if (q === "")
+            return "";
+
+        if (q.startsWith(">") || q.startsWith(":"))
+            return q.slice(1).trim();
+
+        const commands = {
+            "reboot": "systemctl reboot",
+            "restart": "systemctl reboot",
+            "shutdown": "systemctl poweroff",
+            "poweroff": "systemctl poweroff",
+            "suspend": "systemctl suspend",
+            "hibernate": "systemctl hibernate",
+            "logout": "hyprctl dispatch exit",
+            "lock": "hyprlock"
+        };
+
+        return commands[q.toLowerCase()] || "";
+    }
+
+    function commandEntry(command) {
+        return {
+            id: "command:" + command,
+            name: "Run: " + command,
+            comment: "SHELL_COMMAND",
+            execString: command,
+            command: ["sh", "-lc", command],
+            isCommand: true
+        };
+    }
+
+    function launcherEntries(query) {
+        const q = query.trim();
+        const apps = sortedApps(q);
+        const command = commandForQuery(q);
+
+        if (command !== "")
+            return [commandEntry(command), ...apps];
+
+        if (q !== "" && apps.length === 0)
+            return [commandEntry(q)];
+
+        return apps;
     }
 
     function setVisibleState(visible) {
         launcherVisible = visible;
 
         if (visible) {
+            launchInProgress = false;
             queryText = "";
             Qt.callLater(() => {
                 searchInput.clear();
@@ -47,8 +162,17 @@ PanelWindow {
     }
 
     function launchApp(app) {
-        if (!app)
+        if (!app || launchInProgress)
             return;
+
+        launchInProgress = true;
+
+        const key = appKey(app);
+        const counts = Object.assign({}, usageCounts);
+        counts[key] = (counts[key] || 0) + 1;
+        usageCounts = counts;
+        usageWriter.run(JSON.stringify(counts));
+
         Quickshell.execDetached(app.command);
         hideLauncher();
     }
@@ -155,7 +279,7 @@ PanelWindow {
                 Layout.preferredHeight: 54
                 onTextChanged: text => {
                     rootWindow.queryText = text;
-                    resultList.currentIndex = 0;
+                    resultList.currentIndex = text.trim() === "" ? -1 : 0;
                 }
                 onAccepted: resultList.launchCurrent()
             }
@@ -229,13 +353,33 @@ PanelWindow {
         }
     }
 
+    FileView {
+        id: usageState
+        path: rootWindow.usageFile
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: {
+            const value = (text() || "").trim();
+            if (value === "") {
+                rootWindow.usageCounts = ({});
+                return;
+            }
+
+            try {
+                rootWindow.usageCounts = JSON.parse(value);
+            } catch (error) {
+                rootWindow.usageCounts = ({});
+            }
+        }
+    }
+
     Timer {
         id: focusDelay
         interval: 380
         onTriggered: {
             if (!rootWindow.launcherVisible)
                 return;
-            resultList.currentIndex = 0;
+            resultList.currentIndex = -1;
             searchInput.forceActiveFocus();
         }
     }
@@ -245,6 +389,15 @@ PanelWindow {
 
         function run(value) {
             command = ["sh", "-lc", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "sh", rootWindow.stateDir, value, rootWindow.visibleFile];
+            running = true;
+        }
+    }
+
+    Process {
+        id: usageWriter
+
+        function run(value) {
+            command = ["sh", "-lc", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "sh", rootWindow.stateDir, value, rootWindow.usageFile];
             running = true;
         }
     }

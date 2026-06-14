@@ -220,8 +220,8 @@ RowLayout {
     UtilityButton {
         id: powerBtn
         icon: "󰐥"
-        label: "OFF"
-        sublabel: "SYS_HALT"
+        label: ""
+        sublabel: ""
         iconColor: Services.Theme.danger
         active: rootWindow.activeMenu === "power"
         onClicked: root.menuToggle("power")

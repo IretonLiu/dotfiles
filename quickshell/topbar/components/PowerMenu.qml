@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../services" as Services
 
 FlowMenu {
@@ -12,6 +13,15 @@ FlowMenu {
             optReboot.confirming = false
             optShutdown.confirming = false
             optLogout.confirming = false
+        }
+    }
+
+    Process {
+        id: powerCommand
+
+        function run(args) {
+            command = args
+            running = true
         }
     }
     
@@ -176,7 +186,7 @@ FlowMenu {
             id: optReboot
             icon: "󰜉"
             label: "REBOOT_SYSTEM"
-            onClicked: console.log("reboot")
+            onClicked: powerCommand.run(["systemctl", "reboot"])
         }
         
         PowerOption {
@@ -184,14 +194,14 @@ FlowMenu {
             icon: "󰐥"
             label: "SHUTDOWN_HALT"
             color: Services.Theme.danger
-            onClicked: console.log("shutdown")
+            onClicked: powerCommand.run(["systemctl", "poweroff"])
         }
         
         PowerOption {
             id: optLogout
             icon: "󰍃"
             label: "LOGOUT_SESSION"
-            onClicked: console.log("logout")
+            onClicked: powerCommand.run(["hyprctl", "dispatch", "exit"])
         }
     }
 }

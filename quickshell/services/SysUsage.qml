@@ -20,9 +20,21 @@ Singleton {
     // Battery properties
     readonly property real batPerc: UPower.displayDevice.percentage
     readonly property string batValue: Math.round(batPerc * 100) + "%"
+    readonly property bool chargerPlugged: !UPower.onBattery
 
     // Brightness properties
     property real brightnessPerc: 0
+    property string backlightPath: ""
+
+    function updateBrightnessFromBacklight() {
+        if (backlightPath === "")
+            return;
+
+        const current = parseInt(backlightCurrent.text().trim(), 10);
+        const max = parseInt(backlightMax.text().trim(), 10);
+        if (!Number.isNaN(current) && !Number.isNaN(max) && max > 0)
+            brightnessPerc = current / max;
+    }
 
     function formatKib(kib) {
         const mib = 1024;
@@ -40,7 +52,31 @@ Singleton {
         onTriggered: {
             stat.reload();
             meminfo.reload();
-            brightnessTask.run(["brightnessctl", "-m"]);
+            if (root.backlightPath === "")
+                brightnessTask.run(["brightnessctl", "-m"]);
+        }
+    }
+
+    Timer {
+        interval: 250
+        running: root.backlightPath !== ""
+        repeat: true
+        onTriggered: backlightCurrent.reload()
+    }
+
+    Process {
+        id: backlightFinder
+        command: ["sh", "-c", "for d in /sys/class/backlight/*; do [ -e \"$d\" ] && printf '%s' \"$d\" && break; done"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const path = text.trim();
+                if (path !== "") {
+                    root.backlightPath = path;
+                    backlightMax.reload();
+                    backlightCurrent.reload();
+                }
+            }
         }
     }
 
@@ -56,6 +92,20 @@ Singleton {
                 }
             }
         }
+    }
+
+    FileView {
+        id: backlightCurrent
+        path: root.backlightPath === "" ? "/dev/null" : root.backlightPath + "/brightness"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: root.updateBrightnessFromBacklight()
+    }
+
+    FileView {
+        id: backlightMax
+        path: root.backlightPath === "" ? "/dev/null" : root.backlightPath + "/max_brightness"
+        onLoaded: root.updateBrightnessFromBacklight()
     }
 
     FileView {
