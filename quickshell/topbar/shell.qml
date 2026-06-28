@@ -7,9 +7,7 @@ import Quickshell.Services.Pipewire
 import "services" as Services
 import "components"
 
-PanelWindow {
-    id: rootWindow
-
+ShellRoot {
     Process {
         id: polkitAgent
 
@@ -24,7 +22,20 @@ PanelWindow {
         ]
     }
 
-    anchors {
+    Component.onCompleted: {
+        polkitAgent.running = true
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        PanelWindow {
+            id: rootWindow
+            required property ShellScreen modelData
+
+            screen: modelData
+
+            anchors {
         top: true
         left: true
         right: true
@@ -49,11 +60,7 @@ PanelWindow {
         z: 0 
     }
 
-    property string activeMenu: ""
-
-    Component.onCompleted: {
-        polkitAgent.running = true
-    }
+            property string activeMenu: ""
 
     // The Bar Island Container
     property int barHeight: 48
@@ -210,5 +217,7 @@ PanelWindow {
         accentColor: Services.Theme.accent
         surfaceColor: Services.Theme.surface
         z: 20
+    }
+        }
     }
 }

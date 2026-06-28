@@ -152,7 +152,9 @@ PanelWindow {
             Qt.callLater(() => {
                 searchInput.clear();
                 resultList.currentIndex = -1;
-                focusDelay.restart();
+                searchInput.forceActiveFocus();
+                focusRetry.attempts = 0;
+                focusRetry.restart();
             });
         }
     }
@@ -248,6 +250,9 @@ PanelWindow {
                 event.accepted = true;
             } else if (event.key === Qt.Key_Return) {
                 resultList.launchCurrent();
+                event.accepted = true;
+            } else if (event.text !== "" && event.text.charCodeAt(0) >= 32 && !ctrl && !(event.modifiers & (Qt.AltModifier | Qt.MetaModifier))) {
+                searchInput.insertText(event.text);
                 event.accepted = true;
             }
         }
@@ -374,12 +379,17 @@ PanelWindow {
     }
 
     Timer {
-        id: focusDelay
-        interval: 380
+        id: focusRetry
+        interval: 16
+        repeat: true
+        property int attempts: 0
         onTriggered: {
-            if (!rootWindow.launcherVisible)
+            if (!rootWindow.launcherVisible || attempts >= 8) {
+                stop();
+                attempts = 0;
                 return;
-            resultList.currentIndex = -1;
+            }
+            attempts++;
             searchInput.forceActiveFocus();
         }
     }

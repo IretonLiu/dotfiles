@@ -16,6 +16,12 @@ Item {
         textInput.text = ""
         root.textChanged("")
     }
+
+    function insertText(value) {
+        textInput.insert(textInput.cursorPosition, value)
+        root.textChanged(textInput.text)
+        textInput.forceActiveFocus()
+    }
     
     // Base background wash
     Rectangle {

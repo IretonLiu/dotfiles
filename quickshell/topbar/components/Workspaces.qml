@@ -13,6 +13,39 @@ RowLayout {
     property color mutedColor: Services.Theme.muted
     property color bgColor: Services.Theme.surface
 
+    // Hyprland.workspaces can miss/lag the window count in some cases, and the
+    // old fixed `model: 10` silently dropped occupied workspaces above 10.
+    // Build the shown ids from both workspace IPC data and live toplevels.
+    readonly property var occupiedWorkspaces: {
+        const occupied = {};
+
+        for (const ws of Hyprland.workspaces.values) {
+            if (ws.id > 0 && !ws.name.startsWith("special:") && ws.lastIpcObject.windows > 0)
+                occupied[ws.id] = true;
+        }
+
+        for (const client of Hyprland.toplevels.values) {
+            const id = client.workspace?.id;
+            if (id > 0)
+                occupied[id] = true;
+        }
+
+        return occupied;
+    }
+
+    readonly property var shownWorkspaceIds: {
+        const ids = {};
+
+        const focusedId = Hyprland.focusedWorkspace?.id ?? 1;
+        if (focusedId > 0)
+            ids[focusedId] = true;
+
+        for (const id in occupiedWorkspaces)
+            ids[id] = true;
+
+        return Object.keys(ids).map(id => Number(id)).sort((a, b) => a - b);
+    }
+
     // --- DECORATIVE: WORKSPACES LABEL (Vertical) ---
     Item {
         Layout.preferredWidth: 8
@@ -43,18 +76,17 @@ RowLayout {
     Row {
         spacing: 10
         Repeater {
-            model: 10
+            model: root.shownWorkspaceIds
             delegate: Rectangle {
                 id: wsRect
-                property int wsId: index + 1
+                property int wsId: modelData
                 property var workspace: Hyprland.workspaces.values.find(w => w.id === wsId)
                 property bool isFocused: Hyprland.focusedWorkspace?.id === wsId
-                property bool hasWindows: workspace ? workspace.lastIpcObject.windows > 0 : false
+                property bool hasWindows: root.occupiedWorkspaces[wsId] === true
                 
-                visible: isFocused || hasWindows
+                visible: true
                 
                 width: {
-                    if (!visible) return 0;
                     if (isFocused && Hyprland.activeToplevel) {
                         return Math.min(240, Math.max(72, textureText.implicitWidth + 48));
                     }
