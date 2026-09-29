@@ -7,6 +7,12 @@ Item {
     
     signal textChanged(string text)
     signal accepted()
+    signal ctrlAccepted()
+
+    property bool ctrlEnterEnabled: false
+    property string iconText: "󰍉"
+    property string titleText: "APP_QUERY"
+    property string subtitleText: "EXEC_SEARCH"
     
     function forceActiveFocus() {
         textInput.forceActiveFocus()
@@ -17,10 +23,36 @@ Item {
         root.textChanged("")
     }
 
+    function setText(value) {
+        textInput.text = value
+        textInput.cursorPosition = textInput.text.length
+        root.textChanged(textInput.text)
+        textInput.forceActiveFocus()
+    }
+
     function insertText(value) {
         textInput.insert(textInput.cursorPosition, value)
         root.textChanged(textInput.text)
         textInput.forceActiveFocus()
+    }
+
+    function handleEnter(event) {
+        const modifiers = event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)
+        const ctrlOnly = (modifiers & Qt.ControlModifier) && !(modifiers & (Qt.ShiftModifier | Qt.AltModifier | Qt.MetaModifier))
+
+        if (ctrlOnly && root.ctrlEnterEnabled) {
+            root.ctrlAccepted()
+            event.accepted = true
+            return
+        }
+
+        if (modifiers === 0) {
+            root.accepted()
+            event.accepted = true
+            return
+        }
+
+        event.accepted = false
     }
     
     // Base background wash
@@ -85,7 +117,7 @@ Item {
         spacing: 12
         
         Text {
-            text: "󰍉" // Search icon
+            text: root.iconText
             font.family: "JetBrains Mono"
             font.pixelSize: 24
             color: textInput.activeFocus ? Services.Theme.accent : Services.Theme.muted
@@ -96,7 +128,7 @@ Item {
             Layout.alignment: Qt.AlignVCenter
             
             Text {
-                text: "APP_QUERY"
+                text: root.titleText
                 font.family: "JetBrains Mono"
                 font.pixelSize: 11
                 font.bold: true
@@ -104,7 +136,7 @@ Item {
             }
             
             Text {
-                text: "EXEC_SEARCH"
+                text: root.subtitleText
                 font.family: "JetBrains Mono"
                 font.pixelSize: 8
                 font.weight: Font.Bold
@@ -135,6 +167,11 @@ Item {
             
             onTextEdited: root.textChanged(text)
             onAccepted: root.accepted()
+            Keys.priority: Keys.BeforeItem
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+                    root.handleEnter(event)
+            }
         }
     }
 }

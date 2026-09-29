@@ -20,6 +20,7 @@ PanelWindow {
     property bool launchInProgress: false
     property real animationProgress: launcherVisible ? 1.0 : 0.0
     property string queryText: ""
+    property string activePage: "apps"
     property var usageCounts: ({})
 
     Behavior on animationProgress {
@@ -143,16 +144,62 @@ PanelWindow {
         return apps;
     }
 
+    function quickPromptFromText(text) {
+        const raw = text || "";
+        if (!raw.startsWith("?"))
+            return null;
+        return raw.slice(1).replace(/^\s+/, "");
+    }
+
+    function focusActivePage() {
+        if (activePage === "pi")
+            piPage.forceActiveFocus();
+        else
+            searchInput.forceActiveFocus();
+    }
+
+    function switchPage(page) {
+        activePage = page;
+        if (page === "pi")
+            piPage.quickMode = false;
+        Qt.callLater(() => focusActivePage());
+    }
+
+    function startQuickAsk(prompt) {
+        activePage = "pi";
+        piPage.beginQuickAsk(prompt || "");
+        queryText = "";
+        searchInput.clear();
+        Qt.callLater(() => piPage.forceActiveFocus());
+    }
+
+    function submitAppSearch() {
+        const prompt = quickPromptFromText(queryText);
+        if (prompt !== null) {
+            startQuickAsk(prompt);
+            Qt.callLater(() => piPage.submit());
+            return;
+        }
+        resultList.launchCurrent();
+    }
+
+    function openPiInteractive(query) {
+        Quickshell.execDetached(["sh", "-lc", "q=$1; if [ -n \"${TERMINAL:-}\" ] && command -v \"$TERMINAL\" >/dev/null 2>&1; then exec \"$TERMINAL\" -e pi -- \"$q\"; elif command -v kitty >/dev/null 2>&1; then exec kitty pi -- \"$q\"; elif command -v foot >/dev/null 2>&1; then exec foot pi -- \"$q\"; elif command -v alacritty >/dev/null 2>&1; then exec alacritty -e pi -- \"$q\"; elif command -v wezterm >/dev/null 2>&1; then exec wezterm start -- pi -- \"$q\"; else exec xterm -e pi -- \"$q\"; fi", "sh", query]);
+        hideLauncher();
+    }
+
     function setVisibleState(visible) {
         launcherVisible = visible;
 
         if (visible) {
             launchInProgress = false;
             queryText = "";
+            activePage = "apps";
             Qt.callLater(() => {
                 searchInput.clear();
+                piPage.clear();
                 resultList.currentIndex = -1;
-                searchInput.forceActiveFocus();
+                focusActivePage();
                 focusRetry.attempts = 0;
                 focusRetry.restart();
             });
@@ -238,20 +285,68 @@ PanelWindow {
         }
 
         focus: rootWindow.launcherVisible
+        Keys.priority: Keys.BeforeItem
         Keys.onPressed: event => {
             const ctrl = event.modifiers & Qt.ControlModifier;
+            const alt = event.modifiers & Qt.AltModifier;
+            const shift = event.modifiers & Qt.ShiftModifier;
+            const meta = event.modifiers & Qt.MetaModifier;
+            const enter = event.key === Qt.Key_Return || event.key === Qt.Key_Enter;
+
             if (event.key === Qt.Key_Escape) {
                 rootWindow.hideLauncher();
+                event.accepted = true;
+            } else if ((ctrl && event.key === Qt.Key_Tab) || event.key === Qt.Key_Tab) {
+                rootWindow.switchPage(rootWindow.activePage === "apps" ? "pi" : "apps");
+                event.accepted = true;
+            } else if (alt && event.key === Qt.Key_A) {
+                rootWindow.switchPage("apps");
+                event.accepted = true;
+            } else if (alt && event.key === Qt.Key_P) {
+                rootWindow.switchPage("pi");
+                event.accepted = true;
+            } else if (rootWindow.activePage === "pi") {
+                if (ctrl && event.key === Qt.Key_M) {
+                    piPage.cycleModel(shift ? -1 : 1);
+                    event.accepted = true;
+                } else if (ctrl && event.key === Qt.Key_E) {
+                    piPage.cycleEffort(shift ? -1 : 1);
+                    event.accepted = true;
+                } else if (ctrl && event.key === Qt.Key_R) {
+                    piPage.rerun();
+                    event.accepted = true;
+                } else if (ctrl && event.key === Qt.Key_L) {
+                    piPage.clear();
+                    event.accepted = true;
+                } else if (ctrl && event.key === Qt.Key_C) {
+                    piPage.copyAnswer();
+                    event.accepted = true;
+                } else if (ctrl && enter) {
+                    piPage.openInteractive();
+                    event.accepted = true;
+                } else if (ctrl && event.key === Qt.Key_Up) {
+                    piPage.historyPrev();
+                    event.accepted = true;
+                } else if (ctrl && event.key === Qt.Key_Down) {
+                    piPage.historyNext();
+                    event.accepted = true;
+                } else if (enter) {
+                    piPage.submit();
+                    event.accepted = true;
+                } else if (event.text !== "" && event.text.charCodeAt(0) >= 32 && !ctrl && !alt && !meta) {
+                    piPage.insertText(event.text);
+                    event.accepted = true;
+                }
             } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_N)) {
                 resultList.moveDown();
                 event.accepted = true;
             } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_P)) {
                 resultList.moveUp();
                 event.accepted = true;
-            } else if (event.key === Qt.Key_Return) {
-                resultList.launchCurrent();
+            } else if (enter) {
+                rootWindow.submitAppSearch();
                 event.accepted = true;
-            } else if (event.text !== "" && event.text.charCodeAt(0) >= 32 && !ctrl && !(event.modifiers & (Qt.AltModifier | Qt.MetaModifier))) {
+            } else if (event.text !== "" && event.text.charCodeAt(0) >= 32 && !ctrl && !alt && !meta) {
                 searchInput.insertText(event.text);
                 event.accepted = true;
             }
@@ -275,53 +370,144 @@ PanelWindow {
             anchors.rightMargin: 16
             anchors.topMargin: 16
             anchors.bottomMargin: 16
-            spacing: 16
+            spacing: 12
             opacity: Math.max(0, rootWindow.animationProgress * 4 - 3)
-
-            SearchField {
-                id: searchInput
-                Layout.fillWidth: true
-                Layout.preferredHeight: 54
-                onTextChanged: text => {
-                    rootWindow.queryText = text;
-                    resultList.currentIndex = text.trim() === "" ? -1 : 0;
-                }
-                onAccepted: resultList.launchCurrent()
-            }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                Layout.minimumHeight: 28
+                Layout.preferredHeight: 28
+                Layout.maximumHeight: 28
+                spacing: 8
 
                 Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: Services.Theme.accent
-                    opacity: 0.3
+                    Layout.preferredWidth: 92
+                    Layout.minimumHeight: 24
+                    Layout.preferredHeight: 24
+                    Layout.maximumHeight: 24
+                    Layout.alignment: Qt.AlignVCenter
+                    color: rootWindow.activePage === "apps" ? Services.Theme.accent : Services.Theme.surfaceLighter
+                    border.width: 1
+                    border.color: rootWindow.activePage === "apps" ? Services.Theme.accent : Services.Theme.border
+                    radius: 3
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "ALT+A APPS"
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 9
+                        font.bold: true
+                        color: rootWindow.activePage === "apps" ? Services.Theme.surface : Services.Theme.muted
+                    }
+
+                    MouseArea { anchors.fill: parent; onClicked: rootWindow.switchPage("apps") }
                 }
 
+                Rectangle {
+                    Layout.preferredWidth: 82
+                    Layout.minimumHeight: 24
+                    Layout.preferredHeight: 24
+                    Layout.maximumHeight: 24
+                    Layout.alignment: Qt.AlignVCenter
+                    color: rootWindow.activePage === "pi" ? Services.Theme.accent : Services.Theme.surfaceLighter
+                    border.width: 1
+                    border.color: rootWindow.activePage === "pi" ? Services.Theme.accent : Services.Theme.border
+                    radius: 3
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "ALT+P PI"
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 9
+                        font.bold: true
+                        color: rootWindow.activePage === "pi" ? Services.Theme.surface : Services.Theme.muted
+                    }
+
+                    MouseArea { anchors.fill: parent; onClicked: rootWindow.switchPage("pi") }
+                }
+
+                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; Layout.alignment: Qt.AlignVCenter; color: Services.Theme.accent; opacity: 0.3 }
+
                 Text {
-                    text: "RESULT_POOL_INDEX"
+                    text: rootWindow.activePage === "pi" ? "TAB PAGE / ? QUICK_ASK" : "TAB PAGE / ? ASK_PI"
                     font.family: "JetBrains Mono"
                     font.pixelSize: 8
                     font.bold: true
                     color: Services.Theme.accent
-                }
-
-                Rectangle {
-                    Layout.preferredWidth: 40
-                    Layout.preferredHeight: 1
-                    color: Services.Theme.accent
-                    opacity: 0.3
+                    Layout.alignment: Qt.AlignVCenter
                 }
             }
 
-            ResultList {
-                id: resultList
+            Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                model: rootWindow.filteredApps
-                onAppLaunched: app => rootWindow.launchApp(app)
+                Layout.minimumHeight: 0
+
+                ColumnLayout {
+                    id: appsPage
+                    anchors.fill: parent
+                    spacing: 16
+                    visible: rootWindow.activePage === "apps"
+
+                    SearchField {
+                        id: searchInput
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 54
+                        onTextChanged: text => {
+                            rootWindow.queryText = text;
+                            const quickPrompt = rootWindow.quickPromptFromText(text);
+                            if (quickPrompt !== null) {
+                                rootWindow.startQuickAsk(quickPrompt);
+                                return;
+                            }
+                            resultList.currentIndex = text.trim() === "" ? -1 : 0;
+                        }
+                        onAccepted: rootWindow.submitAppSearch()
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 1
+                            color: Services.Theme.accent
+                            opacity: 0.3
+                        }
+
+                        Text {
+                            text: "RESULT_POOL_INDEX"
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 8
+                            font.bold: true
+                            color: Services.Theme.accent
+                        }
+
+                        Rectangle {
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 1
+                            color: Services.Theme.accent
+                            opacity: 0.3
+                        }
+                    }
+
+                    ResultList {
+                        id: resultList
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        model: rootWindow.filteredApps
+                        onAppLaunched: app => rootWindow.launchApp(app)
+                    }
+                }
+
+                PiPage {
+                    id: piPage
+                    anchors.fill: parent
+                    visible: rootWindow.activePage === "pi"
+                    stateDir: rootWindow.stateDir
+                    onOpenInteractiveRequested: query => rootWindow.openPiInteractive(query)
+                }
             }
         }
     }
@@ -370,11 +556,10 @@ PanelWindow {
                 return;
             }
 
-            try {
-                rootWindow.usageCounts = JSON.parse(value);
-            } catch (error) {
-                rootWindow.usageCounts = ({});
-            }
+            const parsed = JSON.parse(value);
+            if (parsed === null || Array.isArray(parsed) || typeof parsed !== "object")
+                throw new Error("Expected object in " + rootWindow.usageFile);
+            rootWindow.usageCounts = parsed;
         }
     }
 
@@ -390,7 +575,7 @@ PanelWindow {
                 return;
             }
             attempts++;
-            searchInput.forceActiveFocus();
+            rootWindow.focusActivePage();
         }
     }
 
