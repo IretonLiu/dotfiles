@@ -11,6 +11,7 @@ ShellRoot {
     Process {
         id: polkitAgent
 
+        running: true
         command: ["systemctl", "--user", "start", "hyprpolkitagent.service"]
     }
     
@@ -20,10 +21,6 @@ ShellRoot {
             Pipewire.defaultAudioSink,
             Pipewire.defaultAudioSource
         ]
-    }
-
-    Component.onCompleted: {
-        polkitAgent.running = true
     }
 
     Variants {
@@ -149,6 +146,7 @@ ShellRoot {
             padding: 4
             clip: true
             Workspaces {
+                screen: rootWindow.screen
                 accentColor: Services.Theme.accent
                 mutedColor: Services.Theme.muted
                 bgColor: Services.Theme.surface

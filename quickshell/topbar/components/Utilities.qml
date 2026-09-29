@@ -213,7 +213,7 @@ RowLayout {
         iconSize: 20
         label: "BLUETOOTH"
         sublabel: "BT_SERVICE"
-        onClicked: shellCommand.run(["hyprctl", "dispatch", "exec", "[float] blueman-manager"])
+        onClicked: shellCommand.run(["alacritty", "--class", "floating", "-e", "bluetui"])
     }
 
     // --- POWER ---

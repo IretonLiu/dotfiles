@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Hyprland
 import "../services" as Services
 
@@ -9,41 +10,142 @@ RowLayout {
     Layout.leftMargin: 10
     Layout.rightMargin: 10
 
+    required property ShellScreen screen
+
     property color accentColor: Services.Theme.accent
     property color mutedColor: Services.Theme.muted
     property color bgColor: Services.Theme.surface
 
+    // Default workspace ownership per monitor/topbar. Keep this in sync with
+    // ~/.config/hypr/hyprland.conf workspace rules.
+    readonly property var workspaceAssignments: ({
+        "eDP-1": [1],
+        "HDMI-A-1": [2],
+        "DP-3": [3]
+    })
+
+    // Bumped from Hyprland IPC events. Some nested Hyprland properties (for
+    // example monitor.activeWorkspace and workspace.lastIpcObject.monitor) do
+    // not always notify QML bindings on their own, so make the workspace model
+    // explicitly recompute after workspace/window/monitor changes.
+    property int refreshToken: 0
+
+    readonly property var monitor: Hyprland.monitorFor(screen)
+    readonly property string monitorName: monitor?.name ?? screen.name
+    readonly property bool isInternalMonitor: monitorName.startsWith("eDP")
+    readonly property int activeWorkspaceId: {
+        refreshToken;
+        if (Hyprland.focusedMonitor?.name === monitorName)
+            return Hyprland.focusedWorkspace?.id ?? 0;
+
+        return monitor?.activeWorkspace?.id ?? monitor?.lastIpcObject?.activeWorkspace?.id ?? 0;
+    }
+    readonly property var activeExternalMonitors: {
+        refreshToken;
+        return Hyprland.monitors.values.filter(m => !m.name.startsWith("eDP")).map(m => m.name);
+    }
+    readonly property var assignedWorkspaceIds: {
+        if (isInternalMonitor)
+            return [1];
+
+        // If only one external display is connected, show both external
+        // workspaces there. If multiple external displays are connected, split
+        // them by the explicit monitor map below.
+        if (activeExternalMonitors.length <= 1 && activeExternalMonitors.indexOf(monitorName) !== -1)
+            return [2, 3];
+
+        const assigned = workspaceAssignments[monitorName];
+        if (assigned)
+            return assigned;
+
+        return [2, 3];
+    }
+
+    function workspaceMonitorName(ws) {
+        const monitor = ws?.monitor ?? ws?.lastIpcObject?.monitor ?? ws?.lastIpcObject?.monitorName ?? "";
+        return typeof monitor === "string" ? monitor : (monitor?.name ?? "");
+    }
+
+    function workspaceBelongsHere(ws) {
+        if (!ws || ws.id <= 0 || ws.name.startsWith("special:"))
+            return false;
+
+        return workspaceMonitorName(ws) === monitorName || assignedWorkspaceIds.indexOf(ws.id) !== -1;
+    }
+
     // Hyprland.workspaces can miss/lag the window count in some cases, and the
     // old fixed `model: 10` silently dropped occupied workspaces above 10.
-    // Build the shown ids from both workspace IPC data and live toplevels.
+    // Build the shown ids from default assignments, per-monitor workspace IPC
+    // data, and live toplevels.
     readonly property var occupiedWorkspaces: {
+        refreshToken;
         const occupied = {};
 
         for (const ws of Hyprland.workspaces.values) {
-            if (ws.id > 0 && !ws.name.startsWith("special:") && ws.lastIpcObject.windows > 0)
+            if (workspaceBelongsHere(ws) && ws.lastIpcObject.windows > 0)
                 occupied[ws.id] = true;
         }
 
         for (const client of Hyprland.toplevels.values) {
-            const id = client.workspace?.id;
-            if (id > 0)
-                occupied[id] = true;
+            const ws = client.workspace;
+            if (workspaceBelongsHere(ws))
+                occupied[ws.id] = true;
         }
 
         return occupied;
     }
 
     readonly property var shownWorkspaceIds: {
+        refreshToken;
         const ids = {};
 
-        const focusedId = Hyprland.focusedWorkspace?.id ?? 1;
-        if (focusedId > 0)
-            ids[focusedId] = true;
+        for (const id of assignedWorkspaceIds) {
+            if (id > 0)
+                ids[id] = true;
+        }
+
+        if (activeWorkspaceId > 0)
+            ids[activeWorkspaceId] = true;
+
+        // Hyprland.workspaces usually contains active and occupied workspaces.
+        // Include every workspace currently reported on this monitor so
+        // non-default active workspaces (e.g. 4 on HDMI-A-1) appear on that
+        // monitor's topbar even when they are outside the default assignment.
+        for (const ws of Hyprland.workspaces.values) {
+            if (workspaceBelongsHere(ws))
+                ids[ws.id] = true;
+        }
 
         for (const id in occupiedWorkspaces)
             ids[id] = true;
 
         return Object.keys(ids).map(id => Number(id)).sort((a, b) => a - b);
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            const n = event.name;
+            if (n.endsWith("v2"))
+                return;
+
+            if (["workspace", "moveworkspace", "focusedmon"].includes(n)) {
+                Hyprland.refreshWorkspaces();
+                Hyprland.refreshMonitors();
+                root.refreshToken++;
+            } else if (["openwindow", "closewindow", "movewindow"].includes(n)) {
+                Hyprland.refreshToplevels();
+                Hyprland.refreshWorkspaces();
+                root.refreshToken++;
+            } else if (n.includes("mon")) {
+                Hyprland.refreshMonitors();
+                root.refreshToken++;
+            } else if (n.includes("workspace")) {
+                Hyprland.refreshWorkspaces();
+                root.refreshToken++;
+            }
+        }
     }
 
     // --- DECORATIVE: WORKSPACES LABEL (Vertical) ---
@@ -81,8 +183,14 @@ RowLayout {
                 id: wsRect
                 property int wsId: modelData
                 property var workspace: Hyprland.workspaces.values.find(w => w.id === wsId)
-                property bool isFocused: Hyprland.focusedWorkspace?.id === wsId
+                property bool isFocused: root.activeWorkspaceId === wsId
                 property bool hasWindows: root.occupiedWorkspaces[wsId] === true
+                property string workspaceTitle: {
+                    if (isFocused && Hyprland.activeToplevel?.workspace?.id === wsId)
+                        return Hyprland.activeToplevel.title || "UNKNOWN";
+
+                    return workspace?.lastIpcObject?.lastwindowtitle || "";
+                }
                 
                 visible: true
                 
@@ -152,7 +260,7 @@ RowLayout {
                         Layout.fillWidth: true
                         Layout.rightMargin: 8
                         
-                        textData: isFocused && Hyprland.activeToplevel ? (Hyprland.activeToplevel.title || "UNKNOWN").toUpperCase() : ""
+                        textData: wsRect.isFocused && wsRect.workspaceTitle ? wsRect.workspaceTitle.toUpperCase() : ""
                         periodicInterval: 25000 + Math.random() * 10000
                         totalTicks: 12
 

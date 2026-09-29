@@ -1,30 +1,89 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Keep workspace 1 on the laptop panel while the lid is open, but move it to an
-# external monitor before disabling the laptop panel when the lid is closed.
-# Override these from the environment if this machine's output names change.
+# Lid-aware workspace placement for Hyprland.
+#
+# Baseline monitor layout comes from the monitor= rules in hyprland.conf. This
+# avoids inventing a separate closed-lid layout, which gets buggy with multiple
+# external monitors. On lid close we reapply the configured external monitor
+# rules, move workspace 1 to the second external display when available, then
+# disable eDP-1. On lid open we reapply the configured monitor rules and move
+# workspace 1 back to eDP-1.
+
+CONFIG_FILE="${HYPR_CONFIG_FILE:-${HOME}/.config/hypr/hyprland.conf}"
 INTERNAL_MONITOR="${HYPR_INTERNAL_MONITOR:-eDP-1}"
-INTERNAL_MODE="${HYPR_INTERNAL_MODE:-1920x1200@60}"
-INTERNAL_POSITION="${HYPR_INTERNAL_POSITION:-auto-down}"
-INTERNAL_SCALE="${HYPR_INTERNAL_SCALE:-1}"
 PREFERRED_EXTERNAL="${HYPR_EXTERNAL_MONITOR:-}"
 WORKSPACE_ID="${HYPR_LID_WORKSPACE_ID:-1}"
-EXTERNAL_CLOSED_MODE="${HYPR_EXTERNAL_CLOSED_MODE:-preferred}"
-EXTERNAL_CLOSED_POSITION="${HYPR_EXTERNAL_CLOSED_POSITION:-0x0}"
-EXTERNAL_CLOSED_SCALE="${HYPR_EXTERNAL_CLOSED_SCALE:-1}"
 
-active_monitors() {
+monitor_names() {
     hyprctl monitors | awk '/^Monitor / { print $2 }'
 }
 
-first_active_external() {
-    if [[ -n "$PREFERRED_EXTERNAL" ]] && active_monitors | grep -Fxq "$PREFERRED_EXTERNAL"; then
+monitor_is_active() {
+    local monitor="$1"
+    monitor_names | grep -Fxq "$monitor"
+}
+
+configured_monitor_rule() {
+    local monitor="$1"
+
+    awk -F= -v monitor="$monitor" '
+        /^[[:space:]]*monitor[[:space:]]*=/ {
+            rule=$2
+            sub(/^[[:space:]]*/, "", rule)
+            split(rule, parts, ",")
+            name=parts[1]
+            sub(/^[[:space:]]*/, "", name)
+            sub(/[[:space:]]*$/, "", name)
+            if (name == monitor) {
+                print rule
+                exit
+            }
+        }
+    ' "$CONFIG_FILE"
+}
+
+configured_external_monitors() {
+    awk -F= -v internal="$INTERNAL_MONITOR" '
+        /^[[:space:]]*monitor[[:space:]]*=/ {
+            rule=$2
+            sub(/^[[:space:]]*/, "", rule)
+            split(rule, parts, ",")
+            name=parts[1]
+            sub(/^[[:space:]]*/, "", name)
+            sub(/[[:space:]]*$/, "", name)
+            if (name != "" && name != internal)
+                print name
+        }
+    ' "$CONFIG_FILE"
+}
+
+external_target_monitor() {
+    if [[ -n "$PREFERRED_EXTERNAL" ]] && monitor_is_active "$PREFERRED_EXTERNAL"; then
         printf '%s\n' "$PREFERRED_EXTERNAL"
         return 0
     fi
 
-    active_monitors | awk -v internal="$INTERNAL_MONITOR" '$0 != internal { print; exit }'
+    mapfile -t externals < <(configured_external_monitors)
+
+    # Prefer the second configured external monitor when it is active. In the
+    # current layout that is DP-3, so closing the lid moves workspace 1 there
+    # instead of to HDMI-A-1.
+    if ((${#externals[@]} >= 2)) && monitor_is_active "${externals[1]}"; then
+        printf '%s\n' "${externals[1]}"
+        return 0
+    fi
+
+    # Fallback to the first configured external monitor that is active.
+    for monitor in "${externals[@]}"; do
+        if monitor_is_active "$monitor"; then
+            printf '%s\n' "$monitor"
+            return 0
+        fi
+    done
+
+    # Final fallback to any active non-internal output.
+    monitor_names | awk -v internal="$INTERNAL_MONITOR" '$0 != internal { print; exit }'
 }
 
 lid_state() {
@@ -37,6 +96,34 @@ lid_state() {
     fi
 }
 
+apply_monitor_rule() {
+    local monitor="$1"
+    local rule
+
+    rule=$(configured_monitor_rule "$monitor")
+    [[ -n "$rule" ]] || return 0
+
+    hyprctl keyword monitor "$rule" >/dev/null || true
+}
+
+apply_external_rules() {
+    while IFS= read -r monitor; do
+        apply_monitor_rule "$monitor"
+    done < <(configured_external_monitors)
+}
+
+apply_all_configured_rules() {
+    awk -F= '
+        /^[[:space:]]*monitor[[:space:]]*=/ {
+            rule=$2
+            sub(/^[[:space:]]*/, "", rule)
+            print rule
+        }
+    ' "$CONFIG_FILE" | while IFS= read -r rule; do
+        [[ -n "$rule" ]] && hyprctl keyword monitor "$rule" >/dev/null || true
+    done
+}
+
 move_workspace_to_monitor() {
     local monitor="$1"
 
@@ -47,28 +134,27 @@ move_workspace_to_monitor() {
 }
 
 close_lid() {
-    local external
-    external=$(first_active_external)
+    local target
+    target=$(external_target_monitor)
 
     # Do not disable the laptop panel if there is nowhere else to put workspace 1.
-    [[ -n "$external" ]] || exit 0
+    [[ -n "$target" ]] || exit 0
 
-    # When the laptop panel is removed, force the external display to become the
-    # origin display. If it keeps an auto-up/auto-down offset, layer surfaces
-    # like quickshell and hyprpaper can appear shifted to the side/off-screen.
-    hyprctl keyword monitor "$external,$EXTERNAL_CLOSED_MODE,$EXTERNAL_CLOSED_POSITION,$EXTERNAL_CLOSED_SCALE,bitdepth,12" >/dev/null
+    apply_external_rules
     sleep 0.1
-    move_workspace_to_monitor "$external"
+    move_workspace_to_monitor "$target"
     hyprctl keyword monitor "$INTERNAL_MONITOR,disable" >/dev/null
     sleep 0.2
-    hyprctl keyword monitor "$external,$EXTERNAL_CLOSED_MODE,$EXTERNAL_CLOSED_POSITION,$EXTERNAL_CLOSED_SCALE,bitdepth,12" >/dev/null
-    move_workspace_to_monitor "$external"
+    apply_external_rules
+    move_workspace_to_monitor "$target"
 }
 
 open_lid() {
-    hyprctl keyword monitor "$INTERNAL_MONITOR,$INTERNAL_MODE,$INTERNAL_POSITION,$INTERNAL_SCALE,bitdepth,12" >/dev/null
+    apply_all_configured_rules
     sleep 0.2
-    move_workspace_to_monitor "$INTERNAL_MONITOR"
+    if monitor_is_active "$INTERNAL_MONITOR"; then
+        move_workspace_to_monitor "$INTERNAL_MONITOR"
+    fi
 }
 
 case "${1:-auto}" in
