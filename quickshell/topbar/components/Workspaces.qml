@@ -108,33 +108,6 @@ RowLayout {
         return Object.keys(ids).map(id => Number(id)).sort((a, b) => a - b);
     }
 
-    // --- DECORATIVE: WORKSPACES LABEL (Vertical) ---
-    Item {
-        Layout.preferredWidth: 8
-        Layout.fillHeight: true
-        
-        Text {
-            anchors.centerIn: parent
-            text: "WS"
-            font.family: "JetBrains Mono"
-            font.pixelSize: 10
-            color: root.accentColor
-            opacity: 0.5
-            rotation: -90
-            width: 30
-            horizontalAlignment: Text.AlignHCenter
-        }
-
-        // Vertical anchor bar
-        Rectangle {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: 1; height: parent.height - 8
-            color: root.accentColor
-            opacity: 0.2
-        }
-    }
-
     Row {
         spacing: 10
         Repeater {

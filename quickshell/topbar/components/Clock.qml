@@ -11,33 +11,6 @@ RowLayout {
     property color textColor: Services.Theme.highlight
     property color accentColor: Services.Theme.accent
 
-    // --- DECORATIVE: CLOCK LABEL (Vertical) ---
-    Item {
-        Layout.preferredWidth: 8
-        Layout.fillHeight: true
-        
-        Text {
-            anchors.centerIn: parent
-            text: "CLK"
-            font.family: "JetBrains Mono"
-            font.pixelSize: 10
-            color: root.accentColor
-            opacity: 0.5
-            rotation: -90
-            width: 30
-            horizontalAlignment: Text.AlignHCenter
-        }
-
-        // Vertical anchor bar
-        Rectangle {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: 1; height: parent.height - 8
-            color: root.accentColor
-            opacity: 0.2
-        }
-    }
-
     MouseArea {
         id: clockBtn
         property bool showDate: false

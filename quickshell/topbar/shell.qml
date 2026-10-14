@@ -108,27 +108,25 @@ ShellRoot {
             height: parent.height
             clip: true
             
-            AestheticContainer {
+            TopbarIsland {
                 id: clockIsland
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 height: rootWindow.barHeight - 2
-                accentColor: Services.Theme.accent
-                padding: 3
+                title: "CLK"
                 Clock {
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
                 }
             }
 
-            AestheticContainer {
+            TopbarIsland {
                 id: systemIsland
                 anchors.left: clockIsland.right
                 anchors.leftMargin: leftGroup.spacing
                 anchors.verticalCenter: parent.verticalCenter
                 height: rootWindow.barHeight - 2
-                accentColor: Services.Theme.accent
-                padding: 3
+                title: "TLM"
                 SystemMonitor {
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
@@ -136,16 +134,14 @@ ShellRoot {
                 }
             }
 
-            AestheticContainer {
+            TopbarIsland {
                 id: mediaIsland
                 anchors.left: systemIsland.right
                 anchors.leftMargin: leftGroup.spacing
                 anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(240, Math.max(0, leftGroup.width - x))
                 height: rootWindow.barHeight - 2
-                accentColor: Services.Theme.accent
-                padding: 3
-                interactiveFrame: true
+                title: "MSC"
                 visible: Services.Media.active !== null && width > 0
                 clip: true
                 MediaPlayer {
@@ -158,7 +154,7 @@ ShellRoot {
         }
 
         // --- CENTER: WORKSPACES ---
-        AestheticContainer {
+        TopbarIsland {
             id: workspaceIsland
             readonly property real maxCenteredWidth: Math.max(0, 2 * Math.min(parent.width / 2 - leftGroup.minimumContentWidth - 8, rightGroup.x - parent.width / 2 - 8))
 
@@ -166,9 +162,7 @@ ShellRoot {
             height: rootWindow.barHeight - 2
             width: Math.min(implicitWidth, maxCenteredWidth)
             visible: width >= 40
-            accentColor: Services.Theme.accent
-            padding: 3
-            interactiveFrame: true
+            title: "WS"
             clip: true
             Workspaces {
                 screen: rootWindow.screen
@@ -194,11 +188,10 @@ ShellRoot {
             height: parent.height
             spacing: 16
             
-            AestheticContainer {
+            TopbarIsland {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.preferredHeight: rootWindow.barHeight - 2
-                accentColor: Services.Theme.accent
-                padding: 3
+                title: "SYS"
                 Utilities {
                     id: utils
                     textColor: Services.Theme.highlight

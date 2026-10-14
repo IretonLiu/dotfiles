@@ -8,9 +8,9 @@ RowLayout {
     spacing: 10
     clip: true
     
-    // Explicit sizing for AestheticContainer
+    // Explicit sizing for the shared TopbarIsland content area.
     implicitHeight: 28
-    implicitWidth: mscLabel.width + trackInfo.Layout.preferredWidth + controlsRow.implicitWidth + progressCol.implicitWidth + (spacing * 3) + 12
+    implicitWidth: trackInfo.Layout.preferredWidth + controlsRow.implicitWidth + progressCol.implicitWidth + (spacing * 2) + 12
 
     property color textColor: Services.Theme.highlight
     property color accentColor: Services.Theme.accent
@@ -18,33 +18,6 @@ RowLayout {
 
     readonly property var player: Services.Media.active
     readonly property real progress: (player && player.length > 0) ? player.position / player.length : 0
-
-    // --- DECORATIVE: MEDIA LABEL ---
-    Item {
-        id: mscLabel
-        width: 8
-        Layout.fillHeight: true
-        
-        Text {
-            anchors.centerIn: parent
-            text: "MSC"
-            font.family: "JetBrains Mono"
-            font.pixelSize: 9
-            color: root.accentColor
-            opacity: 0.5
-            rotation: -90
-            width: 30
-            horizontalAlignment: Text.AlignHCenter
-        }
-
-        Rectangle {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: 1; height: parent.height - 10
-            color: root.accentColor
-            opacity: 0.2
-        }
-    }
 
     // --- TRACK INFO (130px Width) ---
     ColumnLayout {
