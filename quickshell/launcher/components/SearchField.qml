@@ -8,6 +8,8 @@ Item {
     signal textChanged(string text)
     signal accepted()
     signal ctrlAccepted()
+    signal modelCycleRequested(int delta)
+    signal effortCycleRequested(int delta)
 
     property bool ctrlEnterEnabled: false
     property string iconText: "󰍉"
@@ -169,8 +171,20 @@ Item {
             onAccepted: root.accepted()
             Keys.priority: Keys.BeforeItem
             Keys.onPressed: event => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+                const ctrl = event.modifiers & Qt.ControlModifier
+                const shift = event.modifiers & Qt.ShiftModifier
+                const alt = event.modifiers & Qt.AltModifier
+                const meta = event.modifiers & Qt.MetaModifier
+
+                if (ctrl && !alt && !meta && event.key === Qt.Key_M) {
+                    root.modelCycleRequested(shift ? -1 : 1)
+                    event.accepted = true
+                } else if (ctrl && !alt && !meta && event.key === Qt.Key_E) {
+                    root.effortCycleRequested(shift ? -1 : 1)
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                     root.handleEnter(event)
+                }
             }
         }
     }

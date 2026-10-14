@@ -17,6 +17,7 @@ Item {
     readonly property string quickModel: "openai-codex/gpt-5.6-luna"
 
     property string queryText: ""
+    property string displayedPrompt: ""
     property string answerText: ""
     property string errorText: ""
     property string activeModel: "gpt-5.6 luna"
@@ -45,6 +46,14 @@ Item {
     ]
     property string statusText: queryRunning ? "THINKING" : (errorText !== "" ? "ERROR" : (answerText !== "" ? "DONE" : "READY"))
     property color statusColor: queryRunning ? Services.Theme.warning : (errorText !== "" ? Services.Theme.danger : (answerText !== "" ? Services.Theme.success : Services.Theme.accent))
+    readonly property string conversationText: {
+        if (displayedPrompt === "")
+            return "Type a prompt and press Enter.\n\nQuick path: switch to Apps and type '? your question'.\n\nKeys: Ctrl+M model · Ctrl+E effort · Ctrl+R rerun · Ctrl+L clear · Ctrl+Enter full Pi."
+
+        const responseLabel = errorText !== "" ? "PI_ERROR" : "PI"
+        const response = errorText !== "" ? errorText : answerText
+        return "YOU\n" + displayedPrompt + "\n\n" + responseLabel + "\n" + response
+    }
     readonly property string systemPrompt: "You are a fast desktop answer assistant. Answer concisely and practically. Prefer direct answers, short bullets, and useful commands when relevant."
 
     signal openInteractiveRequested(string query)
@@ -59,6 +68,7 @@ Item {
 
     function clear() {
         quickMode = false;
+        displayedPrompt = "";
         answerText = "";
         errorText = "";
         queryText = "";
@@ -72,6 +82,7 @@ Item {
 
     function beginQuickAsk(prompt) {
         quickMode = true;
+        displayedPrompt = "";
         answerText = "";
         errorText = "";
         queryRunning = false;
@@ -83,8 +94,12 @@ Item {
     }
 
     function rerun() {
-        if (queryText.trim() !== "")
+        if (queryText.trim() !== "") {
             submit();
+        } else if (displayedPrompt !== "") {
+            piInput.setText(displayedPrompt);
+            submit();
+        }
     }
 
     function currentModel() {
@@ -191,10 +206,12 @@ Item {
         const effort = quickMode ? effortPresets[0] : currentEffort();
 
         refreshActiveRunMeta(model, effort);
+        displayedPrompt = prompt;
         answerText = "DISPATCHED_TO_PI\nAwaiting response...";
         errorText = "";
         currentRunId = Date.now().toString() + "-" + Math.floor(Math.random() * 1000000).toString();
         pendingPrompt = prompt;
+        piInput.clear();
         lastAppliedRunId = "";
         queryRunning = true;
 
@@ -263,8 +280,9 @@ Item {
         const entry = historyEntries[historyIndex];
         quickMode = false;
         queryRunning = false;
+        displayedPrompt = entry.q || "";
         piInput.setText(entry.q || "");
-        answerText = formatHistoryEntry(entry);
+        answerText = entry.a || "";
         errorText = "";
         activeModel = entry.model || currentModel();
         activeEffortLabel = entry.effort || currentEffort().label;
@@ -293,6 +311,8 @@ Item {
             onTextChanged: text => root.queryText = text
             onAccepted: root.submit()
             onCtrlAccepted: root.openInteractive()
+            onModelCycleRequested: delta => root.cycleModel(delta)
+            onEffortCycleRequested: delta => root.cycleEffort(delta)
         }
 
         RowLayout {
@@ -309,20 +329,53 @@ Item {
 
             Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 14; color: Services.Theme.border }
 
-            Text {
-                text: "MODEL: " + root.displayModel(root.quickMode ? root.quickModel : root.currentModel())
-                font.family: "JetBrains Mono"
-                font.pixelSize: 9
-                color: Services.Theme.highlight
-                elide: Text.ElideRight
+            Rectangle {
                 Layout.maximumWidth: 190
+                implicitWidth: modelText.implicitWidth + 12
+                implicitHeight: 20
+                radius: 3
+                color: modelMouse.containsMouse ? Services.Theme.surfaceLighter : "transparent"
+
+                Text {
+                    id: modelText
+                    anchors.centerIn: parent
+                    text: "MODEL: " + root.displayModel(root.quickMode ? root.quickModel : root.currentModel())
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 9
+                    color: Services.Theme.highlight
+                    elide: Text.ElideRight
+                    width: Math.min(implicitWidth, 178)
+                }
+
+                MouseArea {
+                    id: modelMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: root.cycleModel(1)
+                }
             }
 
-            Text {
-                text: "EFFORT: " + (root.quickMode ? "FAST" : root.currentEffort().label)
-                font.family: "JetBrains Mono"
-                font.pixelSize: 9
-                color: root.quickMode ? Services.Theme.warning : Services.Theme.muted
+            Rectangle {
+                implicitWidth: effortText.implicitWidth + 12
+                implicitHeight: 20
+                radius: 3
+                color: effortMouse.containsMouse ? Services.Theme.surfaceLighter : "transparent"
+
+                Text {
+                    id: effortText
+                    anchors.centerIn: parent
+                    text: "EFFORT: " + (root.quickMode ? "FAST" : root.currentEffort().label)
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: 9
+                    color: root.quickMode ? Services.Theme.warning : Services.Theme.muted
+                }
+
+                MouseArea {
+                    id: effortMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: root.cycleEffort(1)
+                }
             }
 
             Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Services.Theme.accent; opacity: 0.25 }
@@ -373,7 +426,7 @@ Item {
                     wrapMode: TextEdit.Wrap
                     selectByMouse: true
                     textFormat: TextEdit.PlainText
-                    text: root.errorText !== "" ? root.errorText : (root.answerText !== "" ? root.answerText : "Type a prompt and press Enter.\n\nQuick path: switch to Apps and type '? your question'.\n\nKeys: Ctrl+M model · Ctrl+E effort · Ctrl+R rerun · Ctrl+L clear · Ctrl+Enter full Pi.")
+                    text: root.conversationText
                     font.family: "JetBrains Mono"
                     font.pixelSize: 12
                     color: root.errorText !== "" ? Services.Theme.danger : Services.Theme.highlight
