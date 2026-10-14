@@ -90,6 +90,7 @@ cmp.setup.cmdline(":", {
 })
 
 -- Add nvim-cmp capabilities to all LSP clients configured via vim.lsp.config.
+-- This is the non-deprecated Neovim 0.11 API and also covers lua_ls.
 vim.lsp.config("*", {
 	capabilities = require("cmp_nvim_lsp").default_capabilities(),
 })
