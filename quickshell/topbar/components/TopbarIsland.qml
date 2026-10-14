@@ -14,6 +14,9 @@ Rectangle {
     property color accentColor: Services.Theme.accent
     property real padding: 3
     property real titleLeftInset: 10
+    property real titleContentGap: 8
+    readonly property real titleRailWidth: title !== "" ? titleLeftInset + 8 : 0
+    readonly property real contentAvailableWidth: Math.max(0, width - padding * 2 - titleRailWidth - (title !== "" ? titleContentGap : 0))
 
     implicitWidth: innerLayout.implicitWidth + padding * 2
     implicitHeight: innerLayout.implicitHeight + padding * 2
@@ -50,14 +53,14 @@ Rectangle {
     RowLayout {
         id: innerLayout
         anchors.centerIn: parent
-        spacing: 0
+        spacing: root.title !== "" ? root.titleContentGap : 0
 
         // Every island gets the same vertical title rail. Content components
         // therefore contain only their functional UI.
         Item {
             id: titleRail
             visible: root.title !== ""
-            Layout.preferredWidth: visible ? root.titleLeftInset + 8 : 0
+            Layout.preferredWidth: visible ? root.titleRailWidth : 0
             Layout.fillHeight: true
 
             Item {

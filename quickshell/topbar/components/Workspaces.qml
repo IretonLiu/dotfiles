@@ -7,7 +7,6 @@ import "../services" as Services
 RowLayout {
     id: root
     spacing: 14
-    Layout.leftMargin: 10
     Layout.rightMargin: 10
 
     required property ShellScreen screen

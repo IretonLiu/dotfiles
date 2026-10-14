@@ -13,42 +13,32 @@ Singleton {
     // Explicitly track the active player
     property MprisPlayer active: null
 
-    // Update active player whenever the list or any player's state changes
+    // Prefer an actively playing source, while retaining the current paused
+    // player instead of unexpectedly snapping back to Spotify or list order.
     function updateActive() {
         if (players.length === 0) {
             active = null;
             return;
         }
 
-        var best = null;
-        for (var i = 0; i < players.length; i++) {
-            var p = players[i];
-            var id = p.identity.toLowerCase();
-            
-            // Priority: Spotify Playing > Any Playing > Spotify Paused > First Available
-            if (p.playbackState === MprisPlaybackState.Playing) {
-                if (id.indexOf("spotify") !== -1) {
-                    active = p;
-                    return;
-                }
-                if (!best) best = p;
+        let currentIsPresent = false;
+        for (let index = 0; index < players.length; index++) {
+            if (players[index] === active) {
+                currentIsPresent = true;
+                break;
             }
         }
+        if (currentIsPresent && active.playbackState === MprisPlaybackState.Playing)
+            return;
 
-        if (best) {
-            active = best;
+        const playing = players.find(player => player.playbackState === MprisPlaybackState.Playing);
+        if (playing) {
+            active = playing;
             return;
         }
 
-        // Check for paused Spotify
-        for (var i = 0; i < players.length; i++) {
-            if (players[i].identity.toLowerCase().indexOf("spotify") !== -1) {
-                active = players[i];
-                return;
-            }
-        }
-
-        active = players[0];
+        if (!currentIsPresent)
+            active = players[0];
     }
 
     // React to list changes
@@ -56,7 +46,7 @@ Singleton {
 
     // Periodically refresh to catch state changes if bindings miss them
     Timer {
-        interval: 1000
+        interval: 750
         running: true
         repeat: true
         onTriggered: root.updateActive()

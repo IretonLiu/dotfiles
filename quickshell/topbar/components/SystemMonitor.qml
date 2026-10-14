@@ -5,7 +5,6 @@ import "../services" as Services
 RowLayout {
     id: root
     spacing: 18
-    Layout.leftMargin: 14
     Layout.rightMargin: 14
 
     property color textColor: Services.Theme.highlight

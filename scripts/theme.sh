@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-wpg -nrs 'wallpaper1.jpg'
-clear
+# Backward-compatible entry point for the shared theme synchronizer.
+exec "$(dirname "$0")/theme" "$@"

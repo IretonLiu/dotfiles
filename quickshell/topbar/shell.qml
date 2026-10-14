@@ -139,13 +139,13 @@ ShellRoot {
                 anchors.left: systemIsland.right
                 anchors.leftMargin: leftGroup.spacing
                 anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(240, Math.max(0, leftGroup.width - x))
+                width: Math.min(248, Math.max(0, leftGroup.width - x))
                 height: rootWindow.barHeight - 2
                 title: "MSC"
-                visible: Services.Media.active !== null && width > 0
+                visible: Services.Media.active !== null && width >= 144
                 clip: true
                 MediaPlayer {
-                    Layout.preferredWidth: Math.max(0, mediaIsland.width - mediaIsland.padding * 2)
+                    Layout.preferredWidth: mediaIsland.contentAvailableWidth
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
                     mutedColor: Services.Theme.muted
