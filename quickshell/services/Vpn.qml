@@ -9,6 +9,8 @@ Singleton {
 
     property bool connected: false
     property bool busy: false
+    property bool toolsChecked: false
+    property bool wireguardAvailable: false
     property string activeInterface: ""
     property string lastError: ""
     property string lastMessage: ""
@@ -22,8 +24,15 @@ Singleton {
     readonly property string lastConnectedFile: root.stateDir + "/topbar-vpn-last"
 
     function refresh() {
-        statusProc.running = true;
         listConfigsProc.running = true;
+
+        if (!toolsChecked) {
+            toolCheckProc.running = true;
+            return;
+        }
+
+        if (wireguardAvailable)
+            statusProc.running = true;
     }
 
     function clearStatus() {
@@ -73,6 +82,10 @@ Singleton {
     function connect(config) {
         if (!config || !config.name)
             return;
+        if (!wireguardAvailable) {
+            setError("WireGuard tools are unavailable. Install wireguard-tools to connect.");
+            return;
+        }
 
         clearStatus();
 
@@ -99,11 +112,36 @@ Singleton {
     function disconnect(name) {
         if (!name || busy)
             return;
+        if (!wireguardAvailable) {
+            setError("WireGuard tools are unavailable. Install wireguard-tools to disconnect.");
+            return;
+        }
 
         clearStatus();
         busy = true;
         disconnectProc.cmd = ["pkexec", "--disable-internal-agent", "wg-quick", "down", name];
         disconnectProc.running = true;
+    }
+
+    Process {
+        id: toolCheckProc
+        command: ["sh", "-lc", "command -v wg >/dev/null 2>&1 && command -v wg-quick >/dev/null 2>&1 && printf ready"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.wireguardAvailable = (text || "").trim() === "ready";
+                root.toolsChecked = true;
+                if (!root.wireguardAvailable)
+                    root.setError("WireGuard tools are unavailable. Install wireguard-tools to enable VPN controls.");
+                root.refresh();
+            }
+        }
+        onExited: code => {
+            if (code !== 0 && !root.toolsChecked) {
+                root.wireguardAvailable = false;
+                root.toolsChecked = true;
+                root.setError("Unable to check WireGuard tooling (exit " + code + ").");
+            }
+        }
     }
 
     Process {

@@ -20,7 +20,7 @@ FlowMenu {
                 Text {
                     text: "WIREGUARD_VPN"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.bold: true
                     color: Services.Theme.highlight
                 }
@@ -28,7 +28,7 @@ FlowMenu {
                 Text {
                     text: Services.Vpn.busy ? "SWITCHING_CONNECTION..." : (Services.Vpn.connected ? "Active: " + Services.Vpn.activeInterface : "Disconnected")
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     color: Services.Theme.muted
                     width: 120
                     elide: Text.ElideRight
@@ -45,7 +45,12 @@ FlowMenu {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 enabled: !Services.Vpn.busy
+                activeFocusOnTab: true
+                onPressed: forceActiveFocus()
                 onClicked: Services.Vpn.connectLastUsed()
+                Keys.onReturnPressed: event => { event.accepted = true; Services.Vpn.connectLastUsed(); }
+                Keys.onEnterPressed: event => { event.accepted = true; Services.Vpn.connectLastUsed(); }
+                Keys.onSpacePressed: event => { event.accepted = true; Services.Vpn.connectLastUsed(); }
 
                 Rectangle {
                     anchors.fill: parent
@@ -58,7 +63,7 @@ FlowMenu {
                     anchors.centerIn: parent
                     text: "RELINK"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 8
+                    font.pixelSize: 9
                     font.bold: true
                     color: Services.Theme.highlight
                 }
@@ -71,7 +76,12 @@ FlowMenu {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 enabled: !Services.Vpn.busy
+                activeFocusOnTab: true
+                onPressed: forceActiveFocus()
                 onClicked: Services.Vpn.refresh()
+                Keys.onReturnPressed: event => { event.accepted = true; Services.Vpn.refresh(); }
+                Keys.onEnterPressed: event => { event.accepted = true; Services.Vpn.refresh(); }
+                Keys.onSpacePressed: event => { event.accepted = true; Services.Vpn.refresh(); }
 
                 Rectangle {
                     anchors.fill: parent
@@ -84,7 +94,7 @@ FlowMenu {
                     anchors.centerIn: parent
                     text: "󰑐"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 14
+                    font.pixelSize: 15
                     color: Services.Theme.highlight
                 }
             }
@@ -94,7 +104,7 @@ FlowMenu {
             visible: Services.Vpn.lastError.length > 0
             text: Services.Vpn.lastError
             font.family: "JetBrains Mono"
-            font.pixelSize: 8
+            font.pixelSize: 9
             color: Services.Theme.danger
             wrapMode: Text.WrapAnywhere
             Layout.preferredWidth: 240
@@ -104,7 +114,7 @@ FlowMenu {
             visible: Services.Vpn.authIssue
             text: "AUTH_HINT: ensure a polkit agent is running and approve the pkexec prompt."
             font.family: "JetBrains Mono"
-            font.pixelSize: 8
+            font.pixelSize: 9
             color: Services.Theme.highlight
             wrapMode: Text.WrapAnywhere
             Layout.preferredWidth: 240
@@ -114,7 +124,7 @@ FlowMenu {
             visible: Services.Vpn.lastError.length === 0 && Services.Vpn.lastMessage.length > 0
             text: Services.Vpn.lastMessage
             font.family: "JetBrains Mono"
-            font.pixelSize: 8
+            font.pixelSize: 9
             color: Services.Theme.muted
             wrapMode: Text.WrapAnywhere
             Layout.preferredWidth: 240
@@ -134,6 +144,8 @@ FlowMenu {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     enabled: !Services.Vpn.busy
+                    activeFocusOnTab: true
+                    onPressed: forceActiveFocus()
 
                     readonly property var config: modelData
                     readonly property bool isActive: Services.Vpn.activeInterface === config.name
@@ -141,12 +153,17 @@ FlowMenu {
                     readonly property color baseColor: configItem.isActive ? Services.Theme.success : root.accentColor
                     property bool showHighlight: containsMouse
 
-                    onClicked: {
+                    function toggleConnection() {
                         if (configItem.isActive)
                             Services.Vpn.disconnect(config.name)
                         else
                             Services.Vpn.connect(config)
                     }
+
+                    onClicked: toggleConnection()
+                    Keys.onReturnPressed: event => { event.accepted = true; toggleConnection(); }
+                    Keys.onEnterPressed: event => { event.accepted = true; toggleConnection(); }
+                    Keys.onSpacePressed: event => { event.accepted = true; toggleConnection(); }
 
                     Rectangle {
                         id: configHighlightFrame
@@ -195,7 +212,7 @@ FlowMenu {
                         Text {
                             text: configItem.isActive ? "󰖂" : "󰖃"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 18
+                            font.pixelSize: 19
                             color: configItem.isActive ? Services.Theme.success : Services.Theme.muted
                         }
 
@@ -204,8 +221,10 @@ FlowMenu {
 
                             Text {
                                 text: configItem.config.name.toUpperCase()
+                                width: 86
+                                elide: Text.ElideRight
                                 font.family: "JetBrains Mono"
-                                font.pixelSize: 11
+                                font.pixelSize: 12
                                 font.bold: true
                                 color: Services.Theme.highlight
                             }
@@ -213,7 +232,7 @@ FlowMenu {
                             Text {
                                 text: configItem.isActive ? "CLICK_TO_DISCONNECT" : (configItem.config.name === Services.Vpn.lastConnectedName ? "LAST_USED" : (configItem.isUser ? "USER_CONFIG" : "SYSTEM_CONFIG"))
                                 font.family: "JetBrains Mono"
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                                 color: Services.Theme.muted
                             }
                         }
@@ -226,7 +245,7 @@ FlowMenu {
                             Text {
                                 text: configItem.isActive ? "󰖂" : "󰌾"
                                 font.family: "JetBrains Mono"
-                                font.pixelSize: 16
+                                font.pixelSize: 17
                                 color: configItem.baseColor
                             }
 
@@ -236,7 +255,7 @@ FlowMenu {
                                 Text {
                                     text: configItem.isActive ? "DISCONNECT" : "CONNECT"
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: 9
+                                    font.pixelSize: 10
                                     font.bold: true
                                     color: Services.Theme.highlight
                                 }
@@ -244,7 +263,7 @@ FlowMenu {
                                 Text {
                                     text: configItem.isActive ? "ACTIVE" : "WIREGUARD"
                                     font.family: "JetBrains Mono"
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                     font.weight: Font.Bold
                                     color: Services.Theme.muted
                                 }
@@ -258,7 +277,7 @@ FlowMenu {
                 visible: Services.Vpn.availableConfigs.length === 0
                 text: "NO_CONFIGS_FOUND_IN_/ETC_OR_$HOME/.CONFIG"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 8
+                font.pixelSize: 9
                 color: Services.Theme.danger
                 Layout.alignment: Qt.AlignLeft
                 Layout.leftMargin: 2
@@ -268,7 +287,7 @@ FlowMenu {
         Text {
             text: Services.Vpn.busy ? "WAITING_FOR_PKEXEC / WG-QUICK" : "SCANNING: /ETC/WIREGUARD & $HOME/.CONFIG/WIREGUARD"
             font.family: "JetBrains Mono"
-            font.pixelSize: 8
+            font.pixelSize: 9
             color: Services.Theme.muted
             Layout.alignment: Qt.AlignLeft
             Layout.leftMargin: 2

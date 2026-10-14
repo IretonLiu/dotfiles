@@ -7,13 +7,16 @@ import "../services" as Services
 FlowMenu {
     id: root
     verticalLabel: "PWR"
+    expandFromRight: true
     
+    function beginConfirmation(option) {
+        for (const candidate of [optReboot, optShutdown, optLogout])
+            candidate.confirming = candidate === option
+    }
+
     onActiveChanged: {
-        if (!active) {
-            optReboot.confirming = false
-            optShutdown.confirming = false
-            optLogout.confirming = false
-        }
+        if (!active)
+            beginConfirmation(null)
     }
 
     Process {
@@ -92,13 +95,13 @@ FlowMenu {
                     Text {
                         text: icon
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 22
+                        font.pixelSize: 23
                         color: optionRoot.color
                     }
                     Text {
                         text: label
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         font.bold: true
                         color: optionRoot.color
                     }
@@ -120,7 +123,12 @@ FlowMenu {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: optionRoot.confirming
+                        activeFocusOnTab: optionRoot.confirming
+                        onPressed: forceActiveFocus()
                         onClicked: optionRoot.confirming = false
+                        Keys.onReturnPressed: event => { event.accepted = true; optionRoot.confirming = false; }
+                        Keys.onEnterPressed: event => { event.accepted = true; optionRoot.confirming = false; }
+                        Keys.onSpacePressed: event => { event.accepted = true; optionRoot.confirming = false; }
                         
                         Rectangle {
                             anchors.fill: parent
@@ -133,7 +141,7 @@ FlowMenu {
                             anchors.centerIn: parent
                             text: "DENY"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             font.bold: true
                             color: parent.containsMouse ? Services.Theme.danger : Services.Theme.muted
                         }
@@ -147,10 +155,18 @@ FlowMenu {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         enabled: optionRoot.confirming
-                        onClicked: {
+                        activeFocusOnTab: optionRoot.confirming
+                        onPressed: forceActiveFocus()
+
+                        function confirmAction() {
                             optionRoot.confirming = false;
                             optionRoot.clicked();
                         }
+
+                        onClicked: confirmAction()
+                        Keys.onReturnPressed: event => { event.accepted = true; confirmAction(); }
+                        Keys.onEnterPressed: event => { event.accepted = true; confirmAction(); }
+                        Keys.onSpacePressed: event => { event.accepted = true; confirmAction(); }
                         
                         Rectangle {
                             anchors.fill: parent
@@ -163,7 +179,7 @@ FlowMenu {
                             anchors.centerIn: parent
                             text: "CONFIRM"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 10
+                            font.pixelSize: 11
                             font.bold: true
                             color: parent.containsMouse ? Services.Theme.success : optionRoot.color
                         }
@@ -178,7 +194,12 @@ FlowMenu {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 enabled: !optionRoot.confirming
-                onClicked: optionRoot.confirming = true
+                activeFocusOnTab: !optionRoot.confirming
+                onPressed: forceActiveFocus()
+                onClicked: root.beginConfirmation(optionRoot)
+                Keys.onReturnPressed: event => { event.accepted = true; root.beginConfirmation(optionRoot); }
+                Keys.onEnterPressed: event => { event.accepted = true; root.beginConfirmation(optionRoot); }
+                Keys.onSpacePressed: event => { event.accepted = true; root.beginConfirmation(optionRoot); }
             }
         }
         

@@ -29,7 +29,7 @@ RowLayout {
             anchors.centerIn: parent
             text: "MSC"
             font.family: "JetBrains Mono"
-            font.pixelSize: 8
+            font.pixelSize: 9
             color: root.accentColor
             opacity: 0.5
             rotation: -90
@@ -67,7 +67,7 @@ RowLayout {
             }
             text: "ID_" + getPrettyId(root.player ? root.player.identity : "")
             font.family: "JetBrains Mono"
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.weight: Font.Bold
             color: root.accentColor
             opacity: 0.5
@@ -75,6 +75,7 @@ RowLayout {
 
         // --- SCROLLING TITLE ---
         Item {
+            id: titleViewport
             Layout.fillWidth: true
             Layout.preferredHeight: 14
             clip: true
@@ -83,29 +84,47 @@ RowLayout {
                 id: scrollingTitle
                 text: (root.player && root.player.trackTitle) ? root.player.trackTitle.toUpperCase() : "NO_MEDIA"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 11
+                font.pixelSize: 12
                 font.bold: true
                 color: root.textColor
-                
-                readonly property bool needsScroll: implicitWidth > parent.width
-                onTextChanged: x = 0
-                onNeedsScrollChanged: if (!needsScroll) x = 0
-                
-                SequentialAnimation on x {
+
+                readonly property real scrollDistance: Math.max(0, implicitWidth - titleViewport.width)
+                readonly property bool needsScroll: scrollDistance > 0
+
+                function restartMarquee() {
+                    x = 0
+                    if (needsScroll)
+                        titleMarquee.restart()
+                }
+
+                onTextChanged: restartMarquee()
+                onScrollDistanceChanged: restartMarquee()
+                onNeedsScrollChanged: {
+                    if (!needsScroll) {
+                        titleMarquee.stop()
+                        x = 0
+                    }
+                }
+
+                SequentialAnimation {
+                    id: titleMarquee
                     running: scrollingTitle.needsScroll
                     loops: Animation.Infinite
-                    
+
                     PauseAnimation { duration: 2000 }
                     NumberAnimation {
+                        target: scrollingTitle
+                        property: "x"
                         from: 0
-                        to: -(scrollingTitle.implicitWidth - parent.width)
-                        duration: Math.max(2000, (scrollingTitle.implicitWidth - parent.width) * 30)
+                        to: -scrollingTitle.scrollDistance
+                        duration: Math.max(2000, scrollingTitle.scrollDistance * 30)
                         easing.type: Easing.Linear
                     }
                     PauseAnimation { duration: 2000 }
-                    NumberAnimation {
-                        to: 0
-                        duration: 0
+                    PropertyAction {
+                        target: scrollingTitle
+                        property: "x"
+                        value: 0
                     }
                 }
             }
@@ -113,6 +132,7 @@ RowLayout {
 
         // --- SCROLLING ARTIST ---
         Item {
+            id: artistViewport
             Layout.fillWidth: true
             Layout.preferredHeight: 10
             clip: true
@@ -121,28 +141,46 @@ RowLayout {
                 id: scrollingArtist
                 text: (root.player && root.player.trackArtist) ? root.player.trackArtist : "---"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 8
+                font.pixelSize: 9
                 color: root.mutedColor
-                
-                readonly property bool needsScroll: implicitWidth > parent.width
-                onTextChanged: x = 0
-                onNeedsScrollChanged: if (!needsScroll) x = 0
-                
-                SequentialAnimation on x {
+
+                readonly property real scrollDistance: Math.max(0, implicitWidth - artistViewport.width)
+                readonly property bool needsScroll: scrollDistance > 0
+
+                function restartMarquee() {
+                    x = 0
+                    if (needsScroll)
+                        artistMarquee.restart()
+                }
+
+                onTextChanged: restartMarquee()
+                onScrollDistanceChanged: restartMarquee()
+                onNeedsScrollChanged: {
+                    if (!needsScroll) {
+                        artistMarquee.stop()
+                        x = 0
+                    }
+                }
+
+                SequentialAnimation {
+                    id: artistMarquee
                     running: scrollingArtist.needsScroll
                     loops: Animation.Infinite
-                    
+
                     PauseAnimation { duration: 3000 }
                     NumberAnimation {
+                        target: scrollingArtist
+                        property: "x"
                         from: 0
-                        to: -(scrollingArtist.implicitWidth - parent.width)
-                        duration: Math.max(2000, (scrollingArtist.implicitWidth - parent.width) * 40)
+                        to: -scrollingArtist.scrollDistance
+                        duration: Math.max(2000, scrollingArtist.scrollDistance * 40)
                         easing.type: Easing.Linear
                     }
                     PauseAnimation { duration: 3000 }
-                    NumberAnimation {
-                        to: 0
-                        duration: 0
+                    PropertyAction {
+                        target: scrollingArtist
+                        property: "x"
+                        value: 0
                     }
                 }
             }
@@ -169,7 +207,7 @@ RowLayout {
                 anchors.centerIn: parent
                 text: icon
                 font.family: "JetBrains Mono"
-                font.pixelSize: 13
+                font.pixelSize: 14
                 color: btn.containsMouse ? root.accentColor : root.textColor
                 opacity: btn.enabled ? 1.0 : 0.3
             }
@@ -208,14 +246,14 @@ RowLayout {
             Text {
                 text: "TRK"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.weight: Font.Bold
                 color: root.mutedColor
             }
             Text {
                 text: "0x" + Math.round(root.progress * 255).toString(16).toUpperCase()
                 font.family: "JetBrains Mono"
-                font.pixelSize: 7
+                font.pixelSize: 8
                 color: root.accentColor
                 opacity: 0.6
             }

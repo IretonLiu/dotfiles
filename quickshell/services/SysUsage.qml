@@ -96,7 +96,7 @@ Singleton {
 
     FileView {
         id: backlightCurrent
-        path: root.backlightPath === "" ? "/dev/null" : root.backlightPath + "/brightness"
+        path: root.backlightPath === "" ? "" : root.backlightPath + "/brightness"
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.updateBrightnessFromBacklight()
@@ -104,7 +104,7 @@ Singleton {
 
     FileView {
         id: backlightMax
-        path: root.backlightPath === "" ? "/dev/null" : root.backlightPath + "/max_brightness"
+        path: root.backlightPath === "" ? "" : root.backlightPath + "/max_brightness"
         onLoaded: root.updateBrightnessFromBacklight()
     }
 

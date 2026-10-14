@@ -16,23 +16,12 @@ RowLayout {
     property color mutedColor: Services.Theme.muted
     property color bgColor: Services.Theme.surface
 
-    // Default workspace ownership per monitor/topbar. Keep this in sync with
-    // ~/.config/hypr/hyprland.conf workspace rules.
-    readonly property var workspaceAssignments: ({
-        "eDP-1": [1],
-        "HDMI-A-1": [2],
-        "DP-3": [3]
-    })
-
-    // Bumped from Hyprland IPC events. Some nested Hyprland properties (for
-    // example monitor.activeWorkspace and workspace.lastIpcObject.monitor) do
-    // not always notify QML bindings on their own, so make the workspace model
-    // explicitly recompute after workspace/window/monitor changes.
-    property int refreshToken: 0
+    // HyprState parses the workspace monitor rules from hyprland.conf, keeping
+    // the bar's placeholder tabs in sync with the compositor configuration.
+    readonly property int refreshToken: Services.HyprState.refreshToken
 
     readonly property var monitor: Hyprland.monitorFor(screen)
     readonly property string monitorName: monitor?.name ?? screen.name
-    readonly property bool isInternalMonitor: monitorName.startsWith("eDP")
     readonly property int activeWorkspaceId: {
         refreshToken;
         if (Hyprland.focusedMonitor?.name === monitorName)
@@ -40,26 +29,14 @@ RowLayout {
 
         return monitor?.activeWorkspace?.id ?? monitor?.lastIpcObject?.activeWorkspace?.id ?? 0;
     }
-    readonly property var activeExternalMonitors: {
-        refreshToken;
-        return Hyprland.monitors.values.filter(m => !m.name.startsWith("eDP")).map(m => m.name);
-    }
     readonly property var assignedWorkspaceIds: {
-        if (isInternalMonitor)
-            return [1];
-
-        // If only one external display is connected, show both external
-        // workspaces there. If multiple external displays are connected, split
-        // them by the explicit monitor map below.
-        if (activeExternalMonitors.length <= 1 && activeExternalMonitors.indexOf(monitorName) !== -1)
-            return [2, 3];
-
-        const assigned = workspaceAssignments[monitorName];
-        if (assigned)
-            return assigned;
-
-        return [2, 3];
+        refreshToken;
+        return Services.HyprState.assignmentsFor(monitorName);
     }
+
+    // The focused tab contains the active window name. Keep it compact on
+    // normal displays, but allow proportionally more context on wide screens.
+    readonly property real maxFocusedWorkspaceWidth: Math.round(Math.max(160, Math.min(320, screen.width * 0.10)))
 
     function workspaceMonitorName(ws) {
         const monitor = ws?.monitor ?? ws?.lastIpcObject?.monitor ?? ws?.lastIpcObject?.monitorName ?? "";
@@ -70,7 +47,16 @@ RowLayout {
         if (!ws || ws.id <= 0 || ws.name.startsWith("special:"))
             return false;
 
-        return workspaceMonitorName(ws) === monitorName || assignedWorkspaceIds.indexOf(ws.id) !== -1;
+        return workspaceMonitorName(ws) === monitorName;
+    }
+
+    function shouldShowAssignedWorkspace(id) {
+        const workspace = Hyprland.workspaces.values.find(ws => ws.id === id);
+        const owner = workspaceMonitorName(workspace);
+
+        // Show an empty rule-assigned workspace as a placeholder, but never
+        // mirror a workspace that Hyprland says currently lives elsewhere.
+        return !workspace || owner === "" || owner === monitorName;
     }
 
     // Hyprland.workspaces can miss/lag the window count in some cases, and the
@@ -100,7 +86,7 @@ RowLayout {
         const ids = {};
 
         for (const id of assignedWorkspaceIds) {
-            if (id > 0)
+            if (id > 0 && shouldShowAssignedWorkspace(id))
                 ids[id] = true;
         }
 
@@ -122,32 +108,6 @@ RowLayout {
         return Object.keys(ids).map(id => Number(id)).sort((a, b) => a - b);
     }
 
-    Connections {
-        target: Hyprland
-
-        function onRawEvent(event) {
-            const n = event.name;
-            if (n.endsWith("v2"))
-                return;
-
-            if (["workspace", "moveworkspace", "focusedmon"].includes(n)) {
-                Hyprland.refreshWorkspaces();
-                Hyprland.refreshMonitors();
-                root.refreshToken++;
-            } else if (["openwindow", "closewindow", "movewindow"].includes(n)) {
-                Hyprland.refreshToplevels();
-                Hyprland.refreshWorkspaces();
-                root.refreshToken++;
-            } else if (n.includes("mon")) {
-                Hyprland.refreshMonitors();
-                root.refreshToken++;
-            } else if (n.includes("workspace")) {
-                Hyprland.refreshWorkspaces();
-                root.refreshToken++;
-            }
-        }
-    }
-
     // --- DECORATIVE: WORKSPACES LABEL (Vertical) ---
     Item {
         Layout.preferredWidth: 8
@@ -157,7 +117,7 @@ RowLayout {
             anchors.centerIn: parent
             text: "WS"
             font.family: "JetBrains Mono"
-            font.pixelSize: 9
+            font.pixelSize: 10
             color: root.accentColor
             opacity: 0.5
             rotation: -90
@@ -186,20 +146,19 @@ RowLayout {
                 property bool isFocused: root.activeWorkspaceId === wsId
                 property bool hasWindows: root.occupiedWorkspaces[wsId] === true
                 property string workspaceTitle: {
-                    if (isFocused && Hyprland.activeToplevel?.workspace?.id === wsId)
-                        return Hyprland.activeToplevel.title || "UNKNOWN";
+                    if (!isFocused)
+                        return workspace?.lastIpcObject?.lastwindowtitle || "";
 
-                    return workspace?.lastIpcObject?.lastwindowtitle || "";
+                    if (Hyprland.activeToplevel?.workspace?.id === wsId)
+                        return Hyprland.activeToplevel.title || "WINDOW_ACTIVE";
+                    if (hasWindows)
+                        return workspace?.lastIpcObject?.lastwindowtitle || "WINDOWS_ACTIVE";
+                    return "EMPTY_WORKSPACE";
                 }
-                
+
                 visible: true
-                
-                width: {
-                    if (isFocused && Hyprland.activeToplevel) {
-                        return Math.min(240, Math.max(72, textureText.implicitWidth + 48));
-                    }
-                    return 18; // Highly collapsed inactive tab
-                }
+
+                width: isFocused ? Math.min(root.maxFocusedWorkspaceWidth, Math.max(72, textureText.implicitWidth + 48)) : 18
                 height: 32 
                 radius: 2
                 clip: true
@@ -235,7 +194,7 @@ RowLayout {
                     Text {
                         text: wsId
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.bold: true
                         color: wsRect.isFocused ? root.bgColor : root.mutedColor
                         opacity: wsRect.isFocused ? 1 : 0.8
@@ -264,7 +223,7 @@ RowLayout {
                         periodicInterval: 25000 + Math.random() * 10000
                         totalTicks: 12
 
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.bold: true
                         color: root.bgColor
                         opacity: 0.4

@@ -8,6 +8,15 @@ import "services" as Services
 import "components"
 
 ShellRoot {
+    // FocusAudio owns the per-application mute guard; Dunst remains the
+    // source of truth for whether Focus Mode is currently enabled.
+    Connections {
+        target: Services.Dunst
+        function onPausedChanged() {
+            Services.FocusAudio.setFocusActive(Services.Dunst.paused)
+        }
+    }
+
     Process {
         id: polkitAgent
 
@@ -39,8 +48,9 @@ ShellRoot {
     }
     
     implicitHeight: screen.height 
-    WlrLayershell.exclusiveZone: 52
+    WlrLayershell.exclusiveZone: 50
     WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.keyboardFocus: rootWindow.activeMenu !== "" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     mask: Region {
         width: rootWindow.width
@@ -58,9 +68,21 @@ ShellRoot {
     }
 
             property string activeMenu: ""
+            property string statusMessage: ""
+
+            function showStatus(message) {
+                statusMessage = message
+                statusTimer.restart()
+            }
+
+            Timer {
+                id: statusTimer
+                interval: 3500
+                onTriggered: rootWindow.statusMessage = ""
+            }
 
     // The Bar Island Container
-    property int barHeight: 48
+    property int barHeight: 46
     
     Item {
         id: barContainer
@@ -92,7 +114,7 @@ ShellRoot {
                 anchors.verticalCenter: parent.verticalCenter
                 height: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
-                padding: 4
+                padding: 3
                 Clock {
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
@@ -106,7 +128,7 @@ ShellRoot {
                 anchors.verticalCenter: parent.verticalCenter
                 height: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
-                padding: 4
+                padding: 3
                 SystemMonitor {
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
@@ -122,7 +144,8 @@ ShellRoot {
                 width: Math.min(240, Math.max(0, leftGroup.width - x))
                 height: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
-                padding: 4
+                padding: 3
+                interactiveFrame: true
                 visible: Services.Media.active !== null && width > 0
                 clip: true
                 MediaPlayer {
@@ -137,16 +160,26 @@ ShellRoot {
         // --- CENTER: WORKSPACES ---
         AestheticContainer {
             id: workspaceIsland
-            readonly property real maxCenteredWidth: Math.max(120, 2 * Math.min(parent.width / 2 - leftGroup.minimumContentWidth - 8, rightGroup.x - parent.width / 2 - 8))
+            readonly property real maxCenteredWidth: Math.max(0, 2 * Math.min(parent.width / 2 - leftGroup.minimumContentWidth - 8, rightGroup.x - parent.width / 2 - 8))
 
             anchors.centerIn: parent
             height: rootWindow.barHeight - 2
             width: Math.min(implicitWidth, maxCenteredWidth)
+            visible: width >= 40
             accentColor: Services.Theme.accent
-            padding: 4
+            padding: 3
+            interactiveFrame: true
             clip: true
             Workspaces {
                 screen: rootWindow.screen
+                accentColor: Services.Theme.accent
+                mutedColor: Services.Theme.muted
+                bgColor: Services.Theme.surface
+            }
+
+            SpecialWorkspaces {
+                screen: rootWindow.screen
+                Layout.leftMargin: 8
                 accentColor: Services.Theme.accent
                 mutedColor: Services.Theme.muted
                 bgColor: Services.Theme.surface
@@ -165,21 +198,49 @@ ShellRoot {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.preferredHeight: rootWindow.barHeight - 2
                 accentColor: Services.Theme.accent
-                padding: 4
+                padding: 3
                 Utilities {
                     id: utils
                     textColor: Services.Theme.highlight
                     accentColor: Services.Theme.accent
                     mutedColor: Services.Theme.muted
-                    onMenuToggle: (name) => {
+                    onMenuToggle: name => {
                         if (rootWindow.activeMenu === name) rootWindow.activeMenu = ""
                         else rootWindow.activeMenu = name
                     }
+                    onStatusRequested: message => rootWindow.showStatus(message)
                 }
             }
         }
     }
     
+    Rectangle {
+        id: statusToast
+        anchors.top: barContainer.bottom
+        anchors.topMargin: 10
+        anchors.right: parent.right
+        anchors.rightMargin: 16
+        width: Math.min(parent.width - 32, statusText.implicitWidth + 32)
+        height: statusText.implicitHeight + 18
+        radius: 4
+        color: Services.Theme.surface
+        border.width: 1
+        border.color: Services.Theme.danger
+        visible: rootWindow.statusMessage !== ""
+        z: 30
+
+        Text {
+            id: statusText
+            anchors.centerIn: parent
+            width: parent.width - 20
+            text: rootWindow.statusMessage
+            wrapMode: Text.WrapAnywhere
+            font.family: "JetBrains Mono"
+            font.pixelSize: 10
+            color: Services.Theme.highlight
+        }
+    }
+
     // --- OVERLAY LAYER: MENUS ---
     AudioMenu {
         id: audioMenu
@@ -187,6 +248,8 @@ ShellRoot {
         attachTo: utils.audioBtn
         accentColor: Services.Theme.accent
         surfaceColor: Services.Theme.surface
+        onCloseRequested: rootWindow.activeMenu = ""
+        onStatusRequested: message => rootWindow.showStatus(message)
         z: 20
     }
     
@@ -196,6 +259,8 @@ ShellRoot {
         attachTo: utils.netBtn
         accentColor: Services.Theme.accent
         surfaceColor: Services.Theme.surface
+        onCloseRequested: rootWindow.activeMenu = ""
+        onStatusRequested: message => rootWindow.showStatus(message)
         z: 20
     }
     
@@ -205,6 +270,19 @@ ShellRoot {
         attachTo: utils.powerBtn
         accentColor: Services.Theme.accent
         surfaceColor: Services.Theme.surface
+        onCloseRequested: rootWindow.activeMenu = ""
+        onStatusRequested: message => rootWindow.showStatus(message)
+        z: 20
+    }
+
+    FocusAudioMenu {
+        id: focusAudioMenu
+        active: rootWindow.activeMenu === "focusAudio"
+        attachTo: utils.focusBtn
+        accentColor: Services.Theme.accent
+        surfaceColor: Services.Theme.surface
+        onCloseRequested: rootWindow.activeMenu = ""
+        onStatusRequested: message => rootWindow.showStatus(message)
         z: 20
     }
 
@@ -214,6 +292,8 @@ ShellRoot {
         attachTo: utils.wgBtn
         accentColor: Services.Theme.accent
         surfaceColor: Services.Theme.surface
+        onCloseRequested: rootWindow.activeMenu = ""
+        onStatusRequested: message => rootWindow.showStatus(message)
         z: 20
     }
         }

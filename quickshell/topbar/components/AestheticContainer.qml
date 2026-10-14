@@ -7,6 +7,7 @@ Rectangle {
     
     default property alias content: innerLayout.data
     property bool showBrackets: true
+    property bool interactiveFrame: false
     property color accentColor: Services.Theme.accent
     property real padding: 10
 
@@ -19,6 +20,22 @@ Rectangle {
     
     border.width: 1
     border.color: Services.Theme.border
+
+    // Use the same animated outline as every interactive topbar control.
+    // HoverHandler is passive, so it never steals clicks from the content.
+    HoverHandler {
+        id: hoverHandler
+        enabled: root.interactiveFrame
+    }
+
+    AnimatedAccentFrame {
+        active: root.interactiveFrame && hoverHandler.hovered
+        accentColor: root.accentColor
+        // A clipped container (the workspace island) cannot safely draw past
+        // its content bounds, but still receives the identical outline.
+        activeSizeDelta: root.clip ? 0 : 4
+        z: 10
+    }
 
     // --- SIDE BRACKETS (Arknights Style) ---
     // Added top/bottomMargin to prevent overlapping rounded corners

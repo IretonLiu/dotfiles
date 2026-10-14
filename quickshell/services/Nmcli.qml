@@ -166,6 +166,12 @@ Item {
         return state === "100 (connected)" || state === "connected" || state.startsWith("connected");
     }
 
+    function isNetworkUplinkType(deviceType: string): bool {
+        // NetworkManager reports Docker bridges and loopback as connected. They
+        // are local-only interfaces, not an uplink for the status indicator.
+        return deviceType === root.deviceTypeWifi || deviceType === root.deviceTypeEthernet;
+    }
+
     function executeCommand(args: list<string>, callback: var): void {
         const proc = commandProc.createObject(root);
         proc.cmdArgs = ["nmcli", ...args];
@@ -632,8 +638,9 @@ Item {
             for (const line of lines) {
                 const parts = line.split(":");
                 if (parts.length >= 4) {
+                    const deviceType = parts[1] || "";
                     const state = parts[2] || "";
-                    if (isConnectedState(state)) {
+                    if (isNetworkUplinkType(deviceType) && isConnectedState(state)) {
                         connected = true;
                         activeIf = parts[0] || "";
                         activeConn = parts[3] || "";

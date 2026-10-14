@@ -8,14 +8,52 @@ import "../services" as Services
 FlowMenu {
     id: root
     verticalLabel: "AUD"
-    
+
     // Helper to run shell commands
     Process {
         id: shellCommand
-        function run(args) {
+        property string commandLabel: ""
+
+        function run(args, label) {
+            commandLabel = label || args[0]
             command = args
             running = true
         }
+
+        onExited: code => {
+            if (code !== 0)
+                root.statusRequested(commandLabel + " failed (exit " + code + ")")
+            if (root.pendingVolume >= 0)
+                volumeWriteTimer.restart()
+        }
+    }
+
+    property real pendingVolume: -1
+
+    function queueVolume(value) {
+        pendingVolume = Math.max(0, Math.min(1, value))
+        if (!volumeWriteTimer.running)
+            volumeWriteTimer.start()
+    }
+
+    function flushVolume() {
+        if (pendingVolume < 0)
+            return
+        if (shellCommand.running) {
+            volumeWriteTimer.restart()
+            return
+        }
+
+        const value = pendingVolume
+        pendingVolume = -1
+        shellCommand.run(["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", value.toFixed(2)], "Volume update")
+    }
+
+    Timer {
+        id: volumeWriteTimer
+        interval: 50
+        repeat: false
+        onTriggered: root.flushVolume()
     }
 
     // Reference the default audio sink to keep UI reactive
@@ -23,7 +61,7 @@ FlowMenu {
 
     ColumnLayout {
         spacing: 14
-        
+
         // Header
         RowLayout {
             spacing: 12
@@ -32,32 +70,32 @@ FlowMenu {
                 Text {
                     text: "AUDIO_CONTROL"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11 
+                    font.pixelSize: 12
                     font.bold: true
                     color: Services.Theme.highlight
                 }
                 Text {
                     text: root.defaultSink?.description ?? "Unknown Device"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 9 
+                    font.pixelSize: 10
                     color: Services.Theme.muted
                     Layout.preferredWidth: 210
                     elide: Text.ElideRight
                 }
             }
         }
-        
+
         // Slider
         RowLayout {
             spacing: 10
-            
+
             Item {
                 id: sliderTrack
                 Layout.preferredWidth: 240
                 Layout.preferredHeight: 12
-                
-                readonly property real currentVolume: root.defaultSink?.audio?.volume ?? 0
-                
+
+                readonly property real currentVolume: Math.max(0, Math.min(1, root.defaultSink?.audio?.volume ?? 0))
+
                 // Hover highlight
                 Rectangle {
                     anchors.fill: parent
@@ -94,14 +132,14 @@ FlowMenu {
                     height: 2
                     color: Services.Theme.track
                 }
-                
+
                 // Active Fill Container
                 Item {
                     anchors.left: leftBoundary.right
                     anchors.right: rightBoundary.left
                     anchors.verticalCenter: parent.verticalCenter
                     height: parent.height
-                    
+
                     // Hover Ghost Fill (Preview Indicator)
                     Rectangle {
                         width: parent.width * sliderMouse.hoverVal
@@ -109,7 +147,7 @@ FlowMenu {
                         anchors.verticalCenter: parent.verticalCenter
                         color: root.accentColor
                         opacity: sliderMouse.containsMouse && !sliderMouse.pressed ? 0.4 : 0
-                        
+
                         // Ghost End Cap
                         Rectangle {
                             anchors.right: parent.right
@@ -125,7 +163,7 @@ FlowMenu {
                         height: 2
                         anchors.verticalCenter: parent.verticalCenter
                         color: root.accentColor
-                        
+
                         // Technical "End Cap" (Moving Handle)
                         Rectangle {
                             anchors.right: parent.right
@@ -135,51 +173,60 @@ FlowMenu {
                         }
                     }
                 }
-                
+
                 MouseArea {
                     id: sliderMouse
                     anchors.fill: parent
                     anchors.margins: -10 // Larger hit area
                     hoverEnabled: true
+                    activeFocusOnTab: true
+
+                    function nudgeVolume(delta) {
+                        root.queueVolume(sliderTrack.currentVolume + delta)
+                        root.flushVolume()
+                    }
+
+                    Keys.onLeftPressed: event => { event.accepted = true; nudgeVolume(-0.05); }
+                    Keys.onRightPressed: event => { event.accepted = true; nudgeVolume(0.05); }
 
                     // Calculate X relative to the inner track (compensating for the -10 margin)
                     property real relativeX: mouseX - 10
                     property real hoverVal: Math.max(0, Math.min(1, relativeX / sliderTrack.width))
 
-                    onPressed: (mouse) => updateVolume(mouse)
-                    onPositionChanged: (mouse) => {
-                        if (pressed) {
-                            updateVolume(mouse)
-                        }
+                    onPressed: mouse => {
+                        forceActiveFocus()
+                        root.queueVolume((mouse.x - 10) / sliderTrack.width)
                     }
-                    
-                    function updateVolume(mouse) {
-                        let val = Math.max(0, Math.min(1, (mouse.x - 10) / sliderTrack.width))
-                        // Use wpctl for setting volume
-                        shellCommand.run(["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", val.toFixed(2)])
+                    onPositionChanged: mouse => {
+                        if (pressed)
+                            root.queueVolume((mouse.x - 10) / sliderTrack.width)
+                    }
+                    onReleased: mouse => {
+                        root.queueVolume((mouse.x - 10) / sliderTrack.width)
+                        root.flushVolume()
                     }
                 }
             }
-            
+
             Text {
-                property int displayVol: sliderMouse.containsMouse && !sliderMouse.pressed 
-                                         ? Math.round(sliderMouse.hoverVal * 100) 
+                property int displayVol: sliderMouse.containsMouse && !sliderMouse.pressed
+                                         ? Math.round(sliderMouse.hoverVal * 100)
                                          : Math.round((root.defaultSink?.audio?.volume ?? 0) * 100)
                 text: displayVol + "%"
                 font.family: "JetBrains Mono"
-                font.pixelSize: 12 
+                font.pixelSize: 13
                 font.bold: true
                 color: Services.Theme.highlight
                 opacity: sliderMouse.containsMouse && !sliderMouse.pressed ? 0.7 : 1.0
-                Layout.preferredWidth: 40 
+                Layout.preferredWidth: 40
             }
         }
-        
+
         // Bottom Actions Row
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
-            
+
             // Mute Toggle
             MouseArea {
                 id: muteBtn
@@ -187,18 +234,24 @@ FlowMenu {
                 Layout.preferredHeight: 30
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
-                
-                onClicked: {
-                    if (root.defaultSink && root.defaultSink.audio) {
+                activeFocusOnTab: true
+                onPressed: forceActiveFocus()
+
+                function toggleMute() {
+                    if (root.defaultSink && root.defaultSink.audio)
                         root.defaultSink.audio.muted = !root.defaultSink.audio.muted;
-                    }
                 }
+
+                onClicked: toggleMute()
+                Keys.onReturnPressed: event => { event.accepted = true; toggleMute(); }
+                Keys.onEnterPressed: event => { event.accepted = true; toggleMute(); }
+                Keys.onSpacePressed: event => { event.accepted = true; toggleMute(); }
 
                 // --- HIGHLIGHT ANIMATION ---
                 property bool showHighlight: containsMouse
                 readonly property bool isMuted: !!root.defaultSink?.audio?.muted
                 readonly property color baseColor: isMuted ? Services.Theme.danger : root.accentColor
-                
+
                 Rectangle {
                     id: highlightFrame
                     anchors.centerIn: parent
@@ -209,7 +262,7 @@ FlowMenu {
                     border.width: 1
                     border.color: muteBtn.baseColor
                     radius: 4
-                    
+
                     Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
                     Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
                     Behavior on opacity { NumberAnimation { duration: 300 } }
@@ -221,7 +274,7 @@ FlowMenu {
                             width: 4; height: 4
                             color: muteBtn.baseColor
                             opacity: highlightFrame.opacity * 2
-                            
+
                             anchors.top: index < 2 ? parent.top : undefined
                             anchors.bottom: index >= 2 ? parent.bottom : undefined
                             anchors.left: index % 2 == 0 ? parent.left : undefined
@@ -230,40 +283,40 @@ FlowMenu {
                         }
                     }
                 }
-                
+
                 // --- MAIN BUTTON FRAME (Match Utilities Style) ---
                 RowLayout {
                     anchors.centerIn: parent
                     spacing: 10
-                    
+
                     Text {
                         text: muteBtn.isMuted ? "󰝟" : "󰕾"
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 24
+                        font.pixelSize: 25
                         color: muteBtn.baseColor
                     }
-                    
+
                     Column {
                         spacing: -2
-                        
+
                         Text {
                             text: muteBtn.isMuted ? "UNMUTE_SYSTEM" : "MUTE_SYSTEM"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.bold: true
                             color: Services.Theme.highlight
                         }
-                        
+
                         Text {
                             text: "AUDIO_SINK"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                             font.weight: Font.Bold
                             color: Services.Theme.muted
                         }
                     }
                 }
-                
+
                 Rectangle {
                     anchors.fill: parent
                     color: muteBtn.baseColor
@@ -271,7 +324,7 @@ FlowMenu {
                     radius: 4
                 }
             }
-            
+
             // Control Panel
             MouseArea {
                 id: mixerBtn
@@ -279,15 +332,22 @@ FlowMenu {
                 Layout.preferredHeight: 30
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
-                
-                onClicked: {
-                    shellCommand.run(["hyprctl", "dispatch", "exec", "[float] pwvucontrol"])
-                    // close the menu via quickshell API or let the system handle focus
+                activeFocusOnTab: true
+                onPressed: forceActiveFocus()
+
+                function openMixer() {
+                    shellCommand.run(["hyprctl", "dispatch", "exec", "[float] pwvucontrol"], "pwvucontrol")
+                    root.closeRequested()
                 }
+
+                onClicked: openMixer()
+                Keys.onReturnPressed: event => { event.accepted = true; openMixer(); }
+                Keys.onEnterPressed: event => { event.accepted = true; openMixer(); }
+                Keys.onSpacePressed: event => { event.accepted = true; openMixer(); }
 
                 property bool showHighlight: containsMouse
                 readonly property color baseColor: root.accentColor
-                
+
                 Rectangle {
                     id: mixerHighlightFrame
                     anchors.centerIn: parent
@@ -298,7 +358,7 @@ FlowMenu {
                     border.width: 1
                     border.color: mixerBtn.baseColor
                     radius: 4
-                    
+
                     Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
                     Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
                     Behavior on opacity { NumberAnimation { duration: 300 } }
@@ -309,7 +369,7 @@ FlowMenu {
                             width: 4; height: 4
                             color: mixerBtn.baseColor
                             opacity: mixerHighlightFrame.opacity * 2
-                            
+
                             anchors.top: index < 2 ? parent.top : undefined
                             anchors.bottom: index >= 2 ? parent.bottom : undefined
                             anchors.left: index % 2 == 0 ? parent.left : undefined
@@ -318,39 +378,39 @@ FlowMenu {
                         }
                     }
                 }
-                
+
                 RowLayout {
                     anchors.centerIn: parent
                     spacing: 10
-                    
+
                     Text {
                         text: "󰒓" // Gear icon
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 24
+                        font.pixelSize: 25
                         color: mixerBtn.baseColor
                     }
-                    
+
                     Column {
                         spacing: -2
-                        
+
                         Text {
                             text: "CONTROL_PANEL"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.bold: true
                             color: Services.Theme.highlight
                         }
-                        
+
                         Text {
                             text: "PWVUCONTROL"
                             font.family: "JetBrains Mono"
-                            font.pixelSize: 7
+                            font.pixelSize: 8
                             font.weight: Font.Bold
                             color: Services.Theme.muted
                         }
                     }
                 }
-                
+
                 Rectangle {
                     anchors.fill: parent
                     color: mixerBtn.baseColor

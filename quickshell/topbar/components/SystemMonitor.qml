@@ -21,7 +21,7 @@ RowLayout {
             anchors.centerIn: parent
             text: "TLM"
             font.family: "JetBrains Mono"
-            font.pixelSize: 9
+            font.pixelSize: 10
             color: root.accentColor
             opacity: 0.5
             rotation: -90
@@ -57,7 +57,7 @@ RowLayout {
             Text {
                 text: label
                 font.family: "JetBrains Mono"
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.weight: Font.Bold
                 color: root.mutedColor
             }
@@ -68,7 +68,7 @@ RowLayout {
             Text {
                 text: value
                 font.family: "JetBrains Mono"
-                font.pixelSize: 14
+                font.pixelSize: 15
                 font.bold: true
                 color: root.textColor
             }
@@ -192,36 +192,10 @@ RowLayout {
 
         Behavior on Layout.preferredWidth { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
 
-        // Same hover treatment as UtilityButton in Utilities.qml.
-        Rectangle {
-            id: resourceHighlightFrame
-            anchors.centerIn: parent
-            width: parent.width + (resourceGroup.showHighlight ? 4 : -4)
-            height: parent.height + (resourceGroup.showHighlight ? 4 : -4)
-            opacity: resourceGroup.showHighlight ? 0.3 : 0
-            color: "transparent"
-            border.width: 1
-            border.color: root.accentColor
-            radius: 4
-
-            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
-            Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
-            Behavior on opacity { NumberAnimation { duration: 300 } }
-
-            Repeater {
-                model: 4
-                Rectangle {
-                    width: 4; height: 4
-                    color: root.accentColor
-                    opacity: resourceHighlightFrame.opacity * 2
-
-                    anchors.top: index < 2 ? parent.top : undefined
-                    anchors.bottom: index >= 2 ? parent.bottom : undefined
-                    anchors.left: index % 2 == 0 ? parent.left : undefined
-                    anchors.right: index % 2 != 0 ? parent.right : undefined
-                    anchors.margins: -1
-                }
-            }
+        AnimatedAccentFrame {
+            active: resourceGroup.showHighlight
+            accentColor: root.accentColor
+            z: 2
         }
 
         Rectangle {
@@ -248,7 +222,7 @@ RowLayout {
                 Text {
                     text: "RES"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 10
+                    font.pixelSize: 11
                     font.weight: Font.Bold
                     color: root.mutedColor
                     Layout.alignment: Qt.AlignVCenter

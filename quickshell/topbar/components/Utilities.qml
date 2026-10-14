@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
@@ -7,7 +8,7 @@ import "../services" as Services
 
 RowLayout {
     id: root
-    spacing: 14
+    spacing: 9
     Layout.leftMargin: 10
     Layout.rightMargin: 10
 
@@ -15,11 +16,13 @@ RowLayout {
     property color accentColor: Services.Theme.accent
     property color mutedColor: Services.Theme.muted
 
-    // Signal to notify shell.qml about menu toggles
+    // Signals to notify shell.qml about menu toggles and launch failures.
     signal menuToggle(string name)
+    signal statusRequested(string message)
 
     // Export buttons so shell.qml can anchor menus to them
     property alias audioBtn: audioBtn
+    property alias focusBtn: focusBtn
     property alias netBtn: netBtn
     property alias themeBtn: themeBtn
     property alias btBtn: btBtn
@@ -28,9 +31,17 @@ RowLayout {
 
     Process {
         id: shellCommand
-        function run(args) {
+        property string commandLabel: ""
+
+        function run(args, label) {
+            commandLabel = label || args[0]
             command = args
             running = true
+        }
+
+        onExited: code => {
+            if (code !== 0)
+                root.statusRequested(commandLabel + " failed (exit " + code + ")")
         }
     }
 
@@ -38,12 +49,12 @@ RowLayout {
     Item {
         Layout.preferredWidth: 8
         Layout.fillHeight: true
-        
+
         Text {
             anchors.centerIn: parent
             text: "SYS"
             font.family: "JetBrains Mono"
-            font.pixelSize: 9
+            font.pixelSize: 10
             color: root.accentColor
             opacity: 0.5
             rotation: -90
@@ -73,95 +84,179 @@ RowLayout {
     component UtilityButton: MouseArea {
         id: buttonRoot
         property string icon: ""
-        property int iconSize: 24
+        property int iconSize: 25
         property string label: ""
         property string sublabel: ""
+        property int labelMaxWidth: 116
         property color iconColor: root.accentColor
+        property bool showDetails: true
+        property bool detailsAlwaysVisible: false
         property bool active: false
-        
-        implicitWidth: contentRow.implicitWidth + 16
+        property bool solidActive: false
+        signal activated()
+        signal contextActivated()
+
+        // All tools stay compact at rest and reveal their full readout only
+        // while hovered, preserving a symmetric icon rail.
+        property bool expanded: showDetails && (detailsAlwaysVisible || containsMouse)
+        readonly property real collapsedWidth: Math.max(32, collapsedIcon.implicitWidth + 16)
+        readonly property real expandedWidth: Math.max(collapsedWidth, iconGlyph.implicitWidth + detailColumn.textWidth + 28)
+
+        Layout.preferredWidth: expanded ? expandedWidth : collapsedWidth
+        Layout.minimumWidth: collapsedWidth
+        Layout.maximumWidth: expandedWidth
+        implicitWidth: Layout.preferredWidth
         implicitHeight: 32
+        // The shared frame must be allowed to grow outside the button. Text is
+        // clipped separately in contentViewport while the width animates.
+        clip: false
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
 
+        Behavior on Layout.preferredWidth {
+            NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
+        }
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onPressed: forceActiveFocus()
+        onClicked: mouse => {
+            if (mouse.button === Qt.RightButton)
+                contextActivated()
+            else
+                activated()
+        }
+        Keys.onReturnPressed: event => {
+            event.accepted = true
+            activated()
+        }
+        Keys.onEnterPressed: event => {
+            event.accepted = true
+            activated()
+        }
+        Keys.onSpacePressed: event => {
+            event.accepted = true
+            activated()
+        }
+
         // --- HIGHLIGHT ANIMATION ---
         property bool showHighlight: containsMouse || active
-        
-        Rectangle {
-            id: highlightFrame
-            anchors.centerIn: parent
-            width: parent.width + (showHighlight ? 4 : -4)
-            height: parent.height + (showHighlight ? 4 : -4)
-            opacity: showHighlight ? 0.3 : 0
-            color: "transparent"
-            border.width: 1
-            border.color: iconColor
-            radius: 4
-            
-            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
-            Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
-            Behavior on opacity { NumberAnimation { duration: 300 } }
 
-            // Scanning corner accents
-            Repeater {
-                model: 4
-                Rectangle {
-                    width: 4; height: 4
-                    color: buttonRoot.iconColor
-                    opacity: highlightFrame.opacity * 2
-                    
-                    anchors.top: index < 2 ? parent.top : undefined
-                    anchors.bottom: index >= 2 ? parent.bottom : undefined
-                    anchors.left: index % 2 == 0 ? parent.left : undefined
-                    anchors.right: index % 2 != 0 ? parent.right : undefined
-                    anchors.margins: -1
-                }
-            }
+        AnimatedAccentFrame {
+            active: buttonRoot.showHighlight
+            accentColor: buttonRoot.solidActive && buttonRoot.active ? Services.Theme.surface : buttonRoot.iconColor
+            z: 2
         }
-        
-        RowLayout {
-            id: contentRow
-            anchors.centerIn: parent
-            spacing: 12
-            
-            Text {
-                text: icon
-                font.family: "JetBrains Mono"
-                font.pixelSize: buttonRoot.iconSize
-                color: iconColor
-                Layout.alignment: Qt.AlignVCenter
-            }
-            
-            Column {
-                spacing: -2
-                visible: label !== ""
-                Layout.alignment: Qt.AlignVCenter
-                
-                Text {
-                    text: label
-                    font.family: "JetBrains Mono"
-                    font.pixelSize: 12
-                    font.bold: true
-                    color: root.textColor
-                }
-                
-                Text {
-                    text: sublabel
-                    font.family: "JetBrains Mono"
-                    font.pixelSize: 8
-                    font.weight: Font.Bold
-                    color: root.mutedColor
-                    visible: sublabel !== ""
-                }
-            }
-        }
-        
+
         Rectangle {
             anchors.fill: parent
-            color: Services.Theme.accent
+            color: buttonRoot.iconColor
+            opacity: buttonRoot.solidActive && buttonRoot.active ? 1 : 0
+            radius: 4
+
+            Behavior on opacity { NumberAnimation { duration: 180 } }
+        }
+
+        Item {
+            id: contentViewport
+            anchors.fill: parent
+            clip: true
+            z: 1
+
+            Text {
+                id: collapsedIcon
+                anchors.centerIn: parent
+                text: buttonRoot.icon
+                visible: !buttonRoot.expanded && detailColumn.opacity <= 0.01
+                font.family: "JetBrains Mono"
+                font.pixelSize: buttonRoot.iconSize
+                color: buttonRoot.solidActive && buttonRoot.active ? Services.Theme.surface : buttonRoot.iconColor
+            }
+
+            RowLayout {
+                id: fullContent
+                anchors.left: parent.left
+                anchors.leftMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 12
+                visible: label !== "" && (buttonRoot.expanded || detailColumn.opacity > 0.01)
+
+                Text {
+                    id: iconGlyph
+                    text: icon
+                    font.family: "JetBrains Mono"
+                    font.pixelSize: buttonRoot.iconSize
+                    color: buttonRoot.solidActive && buttonRoot.active ? Services.Theme.surface : iconColor
+                    opacity: detailColumn.opacity
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                Column {
+                    id: detailColumn
+                    spacing: -2
+                    readonly property real textWidth: Math.min(detailLabel.implicitWidth, buttonRoot.labelMaxWidth)
+                    width: textWidth
+                    opacity: buttonRoot.expanded ? 1 : 0
+                    Layout.alignment: Qt.AlignVCenter
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+                    }
+
+                    Text {
+                        id: detailLabel
+                        width: parent.width
+                        text: label
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 13
+                        font.bold: true
+                        color: buttonRoot.solidActive && buttonRoot.active ? Services.Theme.surface : root.textColor
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        width: parent.width
+                        text: sublabel
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 9
+                        font.weight: Font.Bold
+                        color: buttonRoot.solidActive && buttonRoot.active ? Services.Theme.surface : root.mutedColor
+                        opacity: buttonRoot.solidActive && buttonRoot.active ? 0.8 : 1
+                        visible: sublabel !== ""
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            color: buttonRoot.solidActive && buttonRoot.active ? Services.Theme.surface : Services.Theme.accent
             opacity: parent.containsMouse ? 0.1 : 0
             radius: 4
+            z: 1.5
         }
+    }
+
+    // --- FOCUS MODE ---
+    UtilityButton {
+        id: focusBtn
+        icon: "󰐷"
+        iconSize: 21
+        label: "FOCUS_MODE"
+        sublabel: Services.Dunst.paused ? "DND_ACTIVE" : "DND_OFF"
+        iconColor: Services.Dunst.paused ? Services.Theme.warning : root.accentColor
+        active: Services.Dunst.paused
+        solidActive: true
+        onActivated: {
+            if (Services.Dunst.available)
+                Services.Dunst.toggle()
+            else
+                root.statusRequested(Services.Dunst.lastError || "Dunst is unavailable.")
+        }
+        onContextActivated: root.menuToggle("focusAudio")
+
+        ToolTip.visible: containsMouse
+        ToolTip.text: "CLICK: TOGGLE FOCUS · RIGHT CLICK: FOCUS AUDIO"
+        ToolTip.delay: 700
     }
 
     // --- SOUND ---
@@ -171,7 +266,7 @@ RowLayout {
         label: Math.round((Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio ? Pipewire.defaultAudioSink.audio.volume : 0) * 100) + "%"
         sublabel: "AUDIO_SINK"
         active: rootWindow.activeMenu === "audio"
-        onClicked: root.menuToggle("audio")
+        onActivated: root.menuToggle("audio")
     }
 
     // --- NETWORK ---
@@ -179,51 +274,52 @@ RowLayout {
         id: netBtn
         icon: root.getNetworkIcon(Services.Nmcli.active ? Services.Nmcli.active.strength : 0)
         label: Services.Nmcli.isConnected ? (Services.Nmcli.active ? Services.Nmcli.active.ssid : "CONNECTED") : "OFFLINE"
+        labelMaxWidth: 112
         sublabel: Services.Nmcli.activeInterface || "NET_DOWN"
         active: rootWindow.activeMenu === "network"
-        onClicked: root.menuToggle("network")
+        onActivated: root.menuToggle("network")
     }
 
     // --- WIREGUARD ---
     UtilityButton {
         id: wgBtn
         icon: "󰖂"
-        iconSize: 20
+        iconSize: 21
         label: Services.Vpn.connected ? "SECURE" : "UNSECURE"
         sublabel: Services.Vpn.connected ? Services.Vpn.activeInterface.toUpperCase() : "VPN_OFF"
         iconColor: Services.Vpn.connected ? Services.Theme.success : root.accentColor
         active: rootWindow.activeMenu === "vpn"
-        onClicked: root.menuToggle("vpn")
+        onActivated: root.menuToggle("vpn")
     }
 
     // --- THEME TOGGLE ---
     UtilityButton {
         id: themeBtn
         icon: Services.Theme.isLightMode ? "󰃠" : "󰃽"
-        iconSize: 20
+        iconSize: 21
         label: Services.Theme.isLightMode ? "LIGHT" : "DARK"
         sublabel: "UI_THEME"
-        onClicked: Services.Theme.toggle()
+        onActivated: Services.Theme.toggle()
     }
 
     // --- BLUETOOTH ---
     UtilityButton {
         id: btBtn
         icon: "󰂯"
-        iconSize: 20
+        iconSize: 21
         label: "BLUETOOTH"
         sublabel: "BT_SERVICE"
-        onClicked: shellCommand.run(["alacritty", "--class", "floating", "-e", "bluetui"])
+        onActivated: shellCommand.run(["alacritty", "--class", "floating", "-e", "bluetui"], "bluetui")
     }
 
     // --- POWER ---
     UtilityButton {
         id: powerBtn
         icon: "󰐥"
-        label: ""
-        sublabel: ""
+        label: "POWER"
+        sublabel: "SESSION_MENU"
         iconColor: Services.Theme.danger
         active: rootWindow.activeMenu === "power"
-        onClicked: root.menuToggle("power")
+        onActivated: root.menuToggle("power")
     }
 }

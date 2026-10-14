@@ -3,3 +3,6 @@ singleton Theme 1.0 Theme.qml
 singleton SysUsage 1.0 SysUsage.qml
 singleton Media 1.0 Media.qml
 singleton Vpn 1.0 Vpn.qml
+singleton HyprState 1.0 HyprState.qml
+singleton Dunst 1.0 Dunst.qml
+singleton FocusAudio 1.0 FocusAudio.qml

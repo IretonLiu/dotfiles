@@ -5,7 +5,7 @@ import "../services" as Services
 Text {
     id: root
     font.family: "JetBrains Mono"
-    font.pixelSize: 9
+    font.pixelSize: 10
     font.weight: Font.Bold
     color: Services.Theme.muted
     opacity: 0.8

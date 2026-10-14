@@ -10,9 +10,17 @@ FlowMenu {
 
     Process {
         id: shellCommand
-        function run(args) {
+        property string commandLabel: ""
+
+        function run(args, label) {
+            commandLabel = label || args[0]
             command = args
             running = true
+        }
+
+        onExited: code => {
+            if (code !== 0)
+                root.statusRequested(commandLabel + " failed (exit " + code + ")")
         }
     }
     
@@ -36,14 +44,14 @@ FlowMenu {
                 Text {
                     text: "NETWORK_STATUS"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.bold: true
                     color: Services.Theme.highlight
                 }
                 Text {
                     text: Services.Nmcli.activeInterface || "Unknown Interface"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     color: Services.Theme.muted
                     Layout.preferredWidth: 210
                     elide: Text.ElideRight
@@ -58,10 +66,18 @@ FlowMenu {
             Layout.preferredHeight: 30
             cursorShape: Qt.PointingHandCursor
             hoverEnabled: true
-            
-            onClicked: {
-                shellCommand.run(["alacritty", "--class", "floating", "-e", "nmtui"])
+            activeFocusOnTab: true
+            onPressed: forceActiveFocus()
+
+            function openNetworkTui() {
+                shellCommand.run(["alacritty", "--class", "floating", "-e", "nmtui"], "nmtui")
+                root.closeRequested()
             }
+
+            onClicked: openNetworkTui()
+            Keys.onReturnPressed: event => { event.accepted = true; openNetworkTui(); }
+            Keys.onEnterPressed: event => { event.accepted = true; openNetworkTui(); }
+            Keys.onSpacePressed: event => { event.accepted = true; openNetworkTui(); }
 
             property bool showHighlight: containsMouse
             readonly property bool isConnected: Services.Nmcli.isConnected
@@ -105,7 +121,7 @@ FlowMenu {
                 Text {
                     text: "["
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.bold: true
                     color: Services.Theme.muted
                 }
@@ -116,7 +132,7 @@ FlowMenu {
                     Text {
                         text: nmtuiBtn.isConnected ? "CONNECTED" : "DISCONNECTED"
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         font.bold: true
                         color: nmtuiBtn.baseColor
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -125,7 +141,7 @@ FlowMenu {
                     Text {
                         text: Services.Nmcli.active?.ssid ?? (nmtuiBtn.isConnected ? "Wired Connection" : "None")
                         font.family: "JetBrains Mono"
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.weight: Font.Bold
                         color: Services.Theme.muted
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -135,7 +151,7 @@ FlowMenu {
                 Text {
                     text: "]"
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 11
+                    font.pixelSize: 12
                     font.bold: true
                     color: Services.Theme.muted
                 }
@@ -149,13 +165,40 @@ FlowMenu {
             }
         }
         
-        Text {
-            text: Services.Nmcli.scanning ? "SCANNING_FOR_AP..." : "NETWORK_READY"
-            font.family: "JetBrains Mono"
-            font.pixelSize: 8
-            color: Services.Theme.muted
-            Layout.alignment: Qt.AlignLeft
-            Layout.leftMargin: 2
+        MouseArea {
+            id: scanButton
+            Layout.fillWidth: true
+            Layout.preferredHeight: 26
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            activeFocusOnTab: true
+            onPressed: forceActiveFocus()
+
+            function scan() {
+                if (!Services.Nmcli.scanning)
+                    Services.Nmcli.rescanWifi()
+            }
+
+            onClicked: scan()
+            Keys.onReturnPressed: event => { event.accepted = true; scan(); }
+            Keys.onEnterPressed: event => { event.accepted = true; scan(); }
+            Keys.onSpacePressed: event => { event.accepted = true; scan(); }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 4
+                color: root.accentColor
+                opacity: scanButton.containsMouse ? 0.12 : 0.04
+            }
+
+            Text {
+                anchors.centerIn: parent
+                text: Services.Nmcli.scanning ? "SCANNING_FOR_AP..." : "SCAN_NETWORKS"
+                font.family: "JetBrains Mono"
+                font.pixelSize: 9
+                font.bold: true
+                color: Services.Nmcli.scanning ? Services.Theme.warning : Services.Theme.highlight
+            }
         }
     }
 }

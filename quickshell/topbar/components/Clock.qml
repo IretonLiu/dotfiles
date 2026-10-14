@@ -20,7 +20,7 @@ RowLayout {
             anchors.centerIn: parent
             text: "CLK"
             font.family: "JetBrains Mono"
-            font.pixelSize: 9
+            font.pixelSize: 10
             color: root.accentColor
             opacity: 0.5
             rotation: -90
@@ -48,6 +48,15 @@ RowLayout {
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
         
+        function utcOffsetLabel() {
+            const offsetMinutes = -new Date().getTimezoneOffset()
+            const sign = offsetMinutes >= 0 ? "+" : "-"
+            const absoluteMinutes = Math.abs(offsetMinutes)
+            const hours = Math.floor(absoluteMinutes / 60)
+            const minutes = absoluteMinutes % 60
+            return "UTC" + sign + hours + (minutes > 0 ? ":" + minutes.toString().padStart(2, "0") : "")
+        }
+
         function updateDisplay() {
             if (showDate) {
                 timeText.text = Qt.formatDateTime(new Date(), "ddd, MMM d")
@@ -58,6 +67,7 @@ RowLayout {
                 timeText.font.pixelSize = 19
                 subtitleText.text = "SYS_TIME"
             }
+            timezoneText.text = utcOffsetLabel()
         }
         
         onClicked: {
@@ -70,36 +80,10 @@ RowLayout {
         // --- HIGHLIGHT ANIMATION ---
         property bool showHighlight: containsMouse
         
-        Rectangle {
-            id: highlightFrame
-            anchors.centerIn: parent
-            width: parent.width + (clockBtn.showHighlight ? 4 : -4)
-            height: parent.height + (clockBtn.showHighlight ? 4 : -4)
-            opacity: clockBtn.showHighlight ? 0.3 : 0
-            color: "transparent"
-            border.width: 1
-            border.color: root.accentColor
-            radius: 4
-            
-            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
-            Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
-            Behavior on opacity { NumberAnimation { duration: 300 } }
-
-            // Scanning corner accents
-            Repeater {
-                model: 4
-                Rectangle {
-                    width: 4; height: 4
-                    color: root.accentColor
-                    opacity: highlightFrame.opacity * 2
-                    
-                    anchors.top: index < 2 ? parent.top : undefined
-                    anchors.bottom: index >= 2 ? parent.bottom : undefined
-                    anchors.left: index % 2 == 0 ? parent.left : undefined
-                    anchors.right: index % 2 != 0 ? parent.right : undefined
-                    anchors.margins: -1
-                }
-            }
+        AnimatedAccentFrame {
+            active: clockBtn.showHighlight
+            accentColor: root.accentColor
+            z: 2
         }
 
         RowLayout {
@@ -114,7 +98,7 @@ RowLayout {
                 color: root.textColor
                 
                 Timer {
-                    interval: 1000
+                    interval: 10000
                     running: true
                     repeat: true
                     onTriggered: clockBtn.updateDisplay()
@@ -128,16 +112,16 @@ RowLayout {
                 Text {
                     id: subtitleText
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     font.weight: Font.Bold
                     color: root.accentColor
                     opacity: 0.8
                 }
                 
                 Text {
-                    text: "UTC+2"
+                    id: timezoneText
                     font.family: "JetBrains Mono"
-                    font.pixelSize: 9
+                    font.pixelSize: 10
                     color: root.textColor
                     opacity: 0.5
                 }
