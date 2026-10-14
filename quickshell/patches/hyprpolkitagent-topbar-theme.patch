@@ -1,0 +1,422 @@
+--- /tmp/tmp.WlwOeWoZaP/hyprpolkitagent-0.1.3/qml/main.qml	2025-07-31 15:53:09.000000000 +0200
++++ /home/ireton/.cache/quickshell-rebuild/hyprpolkitagent/src/hyprpolkitagent-0.1.3/qml/main.qml	2026-09-20 19:18:07.238766519 +0200
+@@ -5,159 +5,290 @@
+ ApplicationWindow {
+     id: window
+
+-    property var windowWidth: Math.round(fontMetrics.height * 32.2856)
+-    property var windowHeight: Math.round(fontMetrics.height * 13.9528)
+-    property var heightSafeMargin: 15
+-
+-    minimumWidth: Math.max(windowWidth, mainLayout.Layout.minimumWidth) + mainLayout.anchors.margins * 2
+-    minimumHeight: Math.max(windowHeight, mainLayout.Layout.minimumHeight) + mainLayout.anchors.margins * 2 + heightSafeMargin
+-    maximumWidth: minimumWidth
+-    maximumHeight: minimumHeight
++    readonly property color surface: "#1A1C1E"
++    readonly property color surfaceLighter: "#23262A"
++    readonly property color accent: "#A78BFA"
++    readonly property color muted: "#64748B"
++    readonly property color highlight: "#F8FAFC"
++    readonly property color danger: "#EF4444"
++    readonly property int targetWidth: 470
++    readonly property int targetHeight: 276
++    property real animationProgress: 0
++
++    width: targetWidth
++    height: targetHeight
++    minimumWidth: targetWidth
++    maximumWidth: targetWidth
++    minimumHeight: targetHeight
++    maximumHeight: targetHeight
+     visible: true
+-    onClosing: {
+-        hpa.setResult("fail");
+-    }
++    color: surface
++    title: "Authorization Required"
+
+-    FontMetrics {
+-        id: fontMetrics
++    Behavior on animationProgress {
++        NumberAnimation { duration: 350; easing.type: Easing.OutExpo }
+     }
+
+-    SystemPalette {
+-        id: system
++    function authenticate() {
++        if (passwordField.text.length > 0)
++            hpa.setResult("auth:" + passwordField.text);
++    }
+
+-        colorGroup: SystemPalette.Active
++    function reject() {
++        hpa.setResult("fail");
+     }
+
+-    Item {
+-        id: mainLayout
++    onClosing: reject()
+
+-        anchors.fill: parent
+-        Keys.onEscapePressed: (e) => {
+-            hpa.setResult("fail");
+-        }
+-        Keys.onReturnPressed: (e) => {
+-            hpa.setResult("auth:" + passwordField.text);
+-        }
+-        Keys.onEnterPressed: (e) => {
+-            hpa.setResult("auth:" + passwordField.text);
++    component TechButton: MouseArea {
++        id: buttonRoot
++        property string label: ""
++        property string sublabel: ""
++        property color accentColor: window.accent
++        property bool destructive: false
++        property bool showHighlight: containsMouse
++
++        implicitWidth: 148
++        implicitHeight: 38
++        hoverEnabled: true
++        cursorShape: Qt.PointingHandCursor
++
++        Rectangle {
++            id: highlightFrame
++            anchors.centerIn: parent
++            width: parent.width + (buttonRoot.showHighlight ? 4 : -4)
++            height: parent.height + (buttonRoot.showHighlight ? 4 : -4)
++            opacity: buttonRoot.showHighlight ? 0.35 : 0
++            color: "transparent"
++            border.width: 1
++            border.color: buttonRoot.accentColor
++            radius: 4
++            Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
++            Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
++            Behavior on opacity { NumberAnimation { duration: 180 } }
++
++            Repeater {
++                model: 4
++                Rectangle {
++                    width: 4; height: 4
++                    color: buttonRoot.accentColor
++                    opacity: highlightFrame.opacity * 2
++                    anchors.top: index < 2 ? parent.top : undefined
++                    anchors.bottom: index >= 2 ? parent.bottom : undefined
++                    anchors.left: index % 2 === 0 ? parent.left : undefined
++                    anchors.right: index % 2 !== 0 ? parent.right : undefined
++                    anchors.margins: -1
++                }
++            }
+         }
+
+-        ColumnLayout {
++        Rectangle {
+             anchors.fill: parent
+-            anchors.margins: 4
++            radius: 4
++            color: buttonRoot.accentColor
++            opacity: buttonRoot.containsMouse ? 0.13 : 0.04
++        }
+
+-            Label {
+-                color: Qt.darker(system.windowText, 0.8)
+-                font.bold: true
+-                font.pointSize: Math.round(fontMetrics.height * 1.05)
+-                text: "Authenticating for " + hpa.getUser()
+-                Layout.alignment: Qt.AlignHCenter
+-                Layout.maximumWidth: parent.width
+-                elide: Text.ElideRight
+-                wrapMode: Text.WordWrap
+-            }
+-
+-            HSeparator {
+-                Layout.topMargin: fontMetrics.height / 2
+-                Layout.bottomMargin: fontMetrics.height / 2
+-            }
+-
+-            Label {
+-                color: system.windowText
+-                text: hpa.getMessage()
+-                Layout.maximumWidth: parent.width
+-                elide: Text.ElideRight
+-                wrapMode: Text.WordWrap
+-            }
+-
+-            TextField {
+-                id: passwordField
+-
+-                Layout.topMargin: fontMetrics.height / 2
+-                placeholderText: "Password"
+-                Layout.alignment: Qt.AlignHCenter
+-                hoverEnabled: true
+-                persistentSelection: true
+-                echoMode: TextInput.Password
+-                focus: true
+-
+-                Connections {
+-                    target: hpa
+-                    function onFocusField() {
+-                        passwordField.focus = true;
+-                    }
+-                    function onBlockInput(block) {
+-                        passwordField.readOnly = block;
+-                        if (!block) {
+-                            passwordField.focus = true;
+-                            passwordField.selectAll();
+-                        }
+-                    }
++        RowLayout {
++            anchors.centerIn: parent
++            spacing: 8
++            Text {
++                text: buttonRoot.destructive ? "󰅖" : "󰌾"
++                font.family: "JetBrains Mono"
++                font.pixelSize: 17
++                color: buttonRoot.accentColor
++            }
++            Column {
++                spacing: -2
++                Text {
++                    text: buttonRoot.label
++                    font.family: "JetBrains Mono"
++                    font.pixelSize: 10
++                    font.bold: true
++                    color: window.highlight
++                }
++                Text {
++                    text: buttonRoot.sublabel
++                    font.family: "JetBrains Mono"
++                    font.pixelSize: 7
++                    font.bold: true
++                    color: window.muted
+                 }
+-
+             }
++        }
++    }
+
+-            Label {
+-                id: errorLabel
++    Item {
++        id: rootItem
++        anchors.fill: parent
++        focus: true
+
+-                color: "red"
+-                font.italic: true
+-                Layout.topMargin: 0
+-                text: ""
+-                Layout.alignment: Qt.AlignHCenter
+-
+-                Connections {
+-                    target: hpa
+-                    function onSetErrorString(e) {
+-                        errorLabel.text = e;
+-                    }
+-                }
++        Keys.onEscapePressed: event => { event.accepted = true; window.reject(); }
++        Keys.onReturnPressed: event => { event.accepted = true; window.authenticate(); }
++        Keys.onEnterPressed: event => { event.accepted = true; window.authenticate(); }
++
++        Rectangle {
++            id: authFrame
++            readonly property real targetFrameWidth: window.targetWidth - 20
++            readonly property real targetFrameHeight: window.targetHeight - 20
++            anchors.centerIn: parent
++            width: targetFrameWidth * window.animationProgress
++            height: targetFrameHeight * window.animationProgress
++            radius: 4
++            color: window.surface
++            border.width: 1
++            border.color: Qt.rgba(window.accent.r, window.accent.g, window.accent.b, 0.55)
++            clip: true
++            opacity: Math.min(1, window.animationProgress * 5)
+
++            Rectangle {
++                anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
++                anchors.topMargin: parent.radius; anchors.bottomMargin: parent.radius
++                width: 2; color: window.accent; opacity: 0.8
+             }
+-
+             Rectangle {
+-                color: "transparent"
+-                Layout.fillHeight: true
++                anchors.right: parent.right; anchors.top: parent.top; anchors.bottom: parent.bottom
++                anchors.topMargin: parent.radius; anchors.bottomMargin: parent.radius
++                width: 2; color: window.accent; opacity: 0.8
+             }
+-
+-            HSeparator {
+-                Layout.topMargin: fontMetrics.height / 2
+-                Layout.bottomMargin: fontMetrics.height / 2
++            Text {
++                anchors.left: parent.left; anchors.leftMargin: 5; anchors.verticalCenter: parent.verticalCenter
++                text: "AUTH"; rotation: -90; width: 70; horizontalAlignment: Text.AlignHCenter
++                font.family: "JetBrains Mono"; font.pixelSize: 9; color: window.accent; opacity: 0.55
++            }
++            Text {
++                anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 9
++                text: "POLKIT / USER_SESSION"; font.family: "JetBrains Mono"; font.pixelSize: 7
++                color: window.accent; opacity: 0.28
+             }
+
+-            RowLayout {
+-                Layout.alignment: Qt.AlignRight
+-                Layout.rightMargin: fontMetrics.height / 2
++            ColumnLayout {
++                anchors.fill: parent
++                anchors.leftMargin: 30; anchors.rightMargin: 20
++                anchors.topMargin: 18; anchors.bottomMargin: 16
++                spacing: 10
++                opacity: Math.max(0, window.animationProgress * 4 - 3)
++
++                RowLayout {
++                    Layout.fillWidth: true
++                    spacing: 10
++                    Text {
++                        text: "󰌾"; font.family: "JetBrains Mono"; font.pixelSize: 24; color: window.accent
++                    }
++                    Column {
++                        Layout.fillWidth: true
++                        spacing: -2
++                        Text {
++                            text: "AUTHORIZATION_REQUIRED"; font.family: "JetBrains Mono"
++                            font.pixelSize: 12; font.bold: true; color: window.highlight
++                        }
++                        Text {
++                            text: "AUTHENTICATING_USER: " + hpa.getUser().toUpperCase()
++                            font.family: "JetBrains Mono"; font.pixelSize: 8; font.bold: true
++                            color: window.muted; elide: Text.ElideRight; width: parent.width
++                        }
++                    }
++                }
++
++                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: window.accent; opacity: 0.35 }
+
+-                Button {
+-                    text: "Cancel"
+-                    onClicked: (e) => {
+-                        hpa.setResult("fail");
++                Flickable {
++                    Layout.fillWidth: true
++                    Layout.preferredHeight: 46
++                    contentWidth: width
++                    contentHeight: messageText.implicitHeight
++                    clip: true
++
++                    Text {
++                        id: messageText
++                        width: parent.width
++                        text: hpa.getMessage()
++                        font.family: "JetBrains Mono"; font.pixelSize: 9
++                        color: window.highlight; opacity: 0.82
++                        wrapMode: Text.WordWrap
++                    }
++                }
++
++                Rectangle {
++                    id: passwordFrame
++                    Layout.fillWidth: true; Layout.preferredHeight: 42
++                    radius: 4
++                    color: passwordField.activeFocus ? window.surfaceLighter : window.surface
++                    border.width: 1
++                    border.color: passwordField.activeFocus ? window.accent : Qt.rgba(window.muted.r, window.muted.g, window.muted.b, 0.5)
++                    Behavior on border.color { ColorAnimation { duration: 160 } }
++                    Behavior on color { ColorAnimation { duration: 160 } }
++                    Text {
++                        anchors.left: parent.left; anchors.leftMargin: 12; anchors.verticalCenter: parent.verticalCenter
++                        text: "KEY"; font.family: "JetBrains Mono"; font.pixelSize: 8; font.bold: true
++                        color: passwordField.activeFocus ? window.accent : window.muted
++                    }
++                    TextInput {
++                        id: passwordField
++                        anchors.left: parent.left; anchors.leftMargin: 48
++                        anchors.right: parent.right; anchors.rightMargin: 12
++                        anchors.verticalCenter: parent.verticalCenter
++                        color: window.highlight; font.family: "JetBrains Mono"; font.pixelSize: 12
++                        echoMode: TextInput.Password; selectByMouse: true; selectionColor: window.accent
++                        clip: true; focus: true
++                        Keys.onReturnPressed: event => { event.accepted = true; window.authenticate(); }
++                        Keys.onEnterPressed: event => { event.accepted = true; window.authenticate(); }
++                        Connections {
++                            target: hpa
++                            function onFocusField() { passwordField.forceActiveFocus(); }
++                            function onBlockInput(block) {
++                                passwordField.readOnly = block;
++                                if (!block) { passwordField.forceActiveFocus(); passwordField.selectAll(); }
++                            }
++                        }
+                     }
+                 }
+
+-                Button {
+-                    text: "Authenticate"
+-                    onClicked: (e) => {
+-                        hpa.setResult("auth:" + passwordField.text);
++                Text {
++                    id: errorLabel
++                    Layout.fillWidth: true
++                    Layout.preferredHeight: text.length > 0 ? implicitHeight : 0
++                    text: ""; font.family: "JetBrains Mono"; font.pixelSize: 8
++                    color: window.danger; wrapMode: Text.WordWrap
++                    Connections {
++                        target: hpa
++                        function onSetErrorString(error) { errorLabel.text = error; }
+                     }
+                 }
+
+-            }
++                Item { Layout.fillHeight: true }
+
++                RowLayout {
++                    Layout.fillWidth: true
++                    Layout.alignment: Qt.AlignRight
++                    spacing: 12
++                    TechButton {
++                        label: "CANCEL"; sublabel: "ABORT_REQUEST"
++                        accentColor: window.danger; destructive: true
++                        onClicked: window.reject()
++                    }
++                    TechButton {
++                        label: "AUTHORIZE"; sublabel: "VERIFY_USER"
++                        accentColor: window.accent
++                        onClicked: window.authenticate()
++                    }
++                }
++            }
+         }
+
++        Repeater {
++            model: 4
++            delegate: Rectangle {
++                width: 3; height: 3
++                color: window.accent; opacity: 0.9
++                visible: window.animationProgress > 0.01; z: 10
++                readonly property real startX: rootItem.width / 2 - width / 2
++                readonly property real startY: rootItem.height / 2 - height / 2
++                readonly property real targetX: authFrame.x + (index % 2 === 0 ? -1 : authFrame.targetFrameWidth - width + 1)
++                readonly property real targetY: authFrame.y + (index < 2 ? -1 : authFrame.targetFrameHeight - height + 1)
++                x: startX + (targetX - startX) * window.animationProgress
++                y: startY + (targetY - startY) * window.animationProgress
++            }
++        }
+     }
+
+-    component Separator: Rectangle {
+-        color: Qt.darker(window.palette.text, 1.5)
+-    }
+-
+-    component HSeparator: Separator {
+-        implicitHeight: 1
+-        Layout.fillWidth: true
+-        Layout.leftMargin: fontMetrics.height * 8
+-        Layout.rightMargin: fontMetrics.height * 8
++    Timer {
++        interval: 1
++        running: true
++        onTriggered: {
++            window.animationProgress = 1;
++            passwordField.forceActiveFocus();
++        }
+     }
+-
+ }

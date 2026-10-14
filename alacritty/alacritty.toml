@@ -108,8 +108,13 @@ mods = "Control|Shift"
 
 [window]
 decorations = "none"
-opacity = 0.90
+opacity = 1.0
 
 [window.padding]
-x = 10
-y = 5
+x =2 
+y =2
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"

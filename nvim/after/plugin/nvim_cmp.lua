@@ -89,9 +89,7 @@ cmp.setup.cmdline(":", {
 	matching = { disallow_symbol_nonprefix_matching = false },
 })
 
--- Set up lspconfig.
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
--- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
-require("lspconfig")["lua_ls"].setup({
-	capabilities = capabilities,
+-- Add nvim-cmp capabilities to all LSP clients configured via vim.lsp.config.
+vim.lsp.config("*", {
+	capabilities = require("cmp_nvim_lsp").default_capabilities(),
 })

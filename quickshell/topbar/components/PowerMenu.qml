@@ -1,0 +1,228 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
+import "../services" as Services
+
+FlowMenu {
+    id: root
+    verticalLabel: "PWR"
+    expandFromRight: true
+    
+    function beginConfirmation(option) {
+        for (const candidate of [optReboot, optShutdown, optLogout])
+            candidate.confirming = candidate === option
+    }
+
+    onActiveChanged: {
+        if (!active)
+            beginConfirmation(null)
+    }
+
+    Process {
+        id: powerCommand
+
+        function run(args) {
+            command = args
+            running = true
+        }
+    }
+    
+    ColumnLayout {
+        spacing: 6
+        
+        component PowerOption: Item {
+            id: optionRoot
+            property string icon: ""
+            property string label: ""
+            property color color: Services.Theme.highlight
+            property bool confirming: false
+            
+            signal clicked()
+            
+            Layout.preferredWidth: 150
+            Layout.preferredHeight: 30
+
+            // --- HIGHLIGHT ANIMATION ---
+            property bool showHighlight: mainMouseArea.containsMouse || denyMouse.containsMouse || confirmMouse.containsMouse
+            
+            Rectangle {
+                id: highlightFrame
+                anchors.centerIn: parent
+                width: parent.width + (showHighlight ? 4 : -4)
+                height: parent.height + (showHighlight ? 4 : -4)
+                opacity: showHighlight ? 0.3 : 0
+                color: "transparent"
+                border.width: 1
+                border.color: optionRoot.color
+                radius: 4
+                
+                Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuint } }
+                Behavior on opacity { NumberAnimation { duration: 300 } }
+
+                // Scanning corner accents
+                Repeater {
+                    model: 4
+                    Rectangle {
+                        width: 4; height: 4
+                        color: optionRoot.color
+                        opacity: highlightFrame.opacity * 2
+                        
+                        anchors.top: index < 2 ? parent.top : undefined
+                        anchors.bottom: index >= 2 ? parent.bottom : undefined
+                        anchors.left: index % 2 == 0 ? parent.left : undefined
+                        anchors.right: index % 2 != 0 ? parent.right : undefined
+                        anchors.margins: -1
+                    }
+                }
+            }
+            
+            Rectangle {
+                anchors.fill: parent
+                color: showHighlight ? Services.Theme.surfaceLighter : "transparent"
+                radius: 4
+                
+                // DEFAULT VIEW
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    spacing: 12
+                    opacity: optionRoot.confirming ? 0 : 1
+                    visible: opacity > 0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                    
+                    Text {
+                        text: icon
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 23
+                        color: optionRoot.color
+                    }
+                    Text {
+                        text: label
+                        font.family: "JetBrains Mono"
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: optionRoot.color
+                    }
+                }
+                
+                // CONFIRM VIEW
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 0
+                    opacity: optionRoot.confirming ? 1 : 0
+                    visible: opacity > 0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                    
+                    // Deny Button
+                    MouseArea {
+                        id: denyMouse
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        enabled: optionRoot.confirming
+                        activeFocusOnTab: optionRoot.confirming
+                        onPressed: forceActiveFocus()
+                        onClicked: optionRoot.confirming = false
+                        Keys.onReturnPressed: event => { event.accepted = true; optionRoot.confirming = false; }
+                        Keys.onEnterPressed: event => { event.accepted = true; optionRoot.confirming = false; }
+                        Keys.onSpacePressed: event => { event.accepted = true; optionRoot.confirming = false; }
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Services.Theme.danger
+                            opacity: parent.containsMouse ? 0.2 : 0
+                            radius: 4
+                        }
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: "DENY"
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: parent.containsMouse ? Services.Theme.danger : Services.Theme.muted
+                        }
+                    }
+                    
+                    // Confirm Button
+                    MouseArea {
+                        id: confirmMouse
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        enabled: optionRoot.confirming
+                        activeFocusOnTab: optionRoot.confirming
+                        onPressed: forceActiveFocus()
+
+                        function confirmAction() {
+                            optionRoot.confirming = false;
+                            optionRoot.clicked();
+                        }
+
+                        onClicked: confirmAction()
+                        Keys.onReturnPressed: event => { event.accepted = true; confirmAction(); }
+                        Keys.onEnterPressed: event => { event.accepted = true; confirmAction(); }
+                        Keys.onSpacePressed: event => { event.accepted = true; confirmAction(); }
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Services.Theme.success
+                            opacity: parent.containsMouse ? 0.2 : 0
+                            radius: 4
+                        }
+                        
+                        Text {
+                            anchors.centerIn: parent
+                            text: "CONFIRM"
+                            font.family: "JetBrains Mono"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: parent.containsMouse ? Services.Theme.success : optionRoot.color
+                        }
+                    }
+                }
+            }
+            
+            // MAIN CLICK AREA
+            MouseArea {
+                id: mainMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                enabled: !optionRoot.confirming
+                activeFocusOnTab: !optionRoot.confirming
+                onPressed: forceActiveFocus()
+                onClicked: root.beginConfirmation(optionRoot)
+                Keys.onReturnPressed: event => { event.accepted = true; root.beginConfirmation(optionRoot); }
+                Keys.onEnterPressed: event => { event.accepted = true; root.beginConfirmation(optionRoot); }
+                Keys.onSpacePressed: event => { event.accepted = true; root.beginConfirmation(optionRoot); }
+            }
+        }
+        
+        PowerOption {
+            id: optReboot
+            icon: "󰜉"
+            label: "REBOOT_SYSTEM"
+            onClicked: powerCommand.run(["systemctl", "reboot"])
+        }
+        
+        PowerOption {
+            id: optShutdown
+            icon: "󰐥"
+            label: "SHUTDOWN_HALT"
+            color: Services.Theme.danger
+            onClicked: powerCommand.run(["systemctl", "poweroff"])
+        }
+        
+        PowerOption {
+            id: optLogout
+            icon: "󰍃"
+            label: "LOGOUT_SESSION"
+            onClicked: powerCommand.run(["hyprctl", "dispatch", "exit"])
+        }
+    }
+}
