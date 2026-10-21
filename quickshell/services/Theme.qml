@@ -17,18 +17,18 @@ Item {
     property var palette: ({
         "profile": "dark",
         "mode": "dark",
-        "surface": "#1A1C1E",
-        "surface_lighter": "#26292C",
-        "surface_darker": "#0F1112",
+        "surface": "#1B1826",
+        "surface_lighter": "#252037",
+        "surface_darker": "#12101A",
         "accent": "#A78BFA",
-        "muted": "#64748B",
-        "highlight": "#F8FAFC",
-        "border": "#3A3E42",
-        "track": "#383C40",
-        "shadow": "#4B3E70",
-        "danger": "#EF4444",
-        "success": "#22C55E",
-        "warning": "#F59E0B"
+        "muted": "#A49AB8",
+        "highlight": "#F5F0E8",
+        "border": "#4A4262",
+        "track": "#3B3450",
+        "shadow": "#46385F",
+        "danger": "#E58AA6",
+        "success": "#72C7AA",
+        "warning": "#E5B875"
     })
 
     readonly property bool isLightMode: palette.mode === "light"
