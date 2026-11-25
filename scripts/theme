@@ -309,7 +309,7 @@ def render_pi(palette: dict[str, Any], theme_name: str) -> str:
             "selectedBg": "surfaceAccent", "userMessageBg": "surfaceAccent", "userMessageText": "ghost",
             "customMessageBg": "surfaceLift", "customMessageText": "ghost", "customMessageLabel": "lime",
             "toolPendingBg": "surfaceLift", "toolSuccessBg": "successSurface", "toolErrorBg": "dangerSurface", "toolTitle": "lavender", "toolOutput": "ghost",
-            "mdHeading": "lavender", "mdLink": "lime", "mdLinkUrl": "slate", "mdCode": "lime", "mdCodeBlock": "ghost", "mdCodeBlockBorder": "lavenderDim", "mdQuote": "slate", "mdQuoteBorder": "lavenderDim", "mdHr": "slateDim", "mdListBullet": "lime",
+            "mdHeading": "lavender", "mdLink": "lime", "mdLinkUrl": "slate", "mdCode": "lime", "mdCodeBlock": "ghost", "mdCodeBlockBorder": "lavender", "mdQuote": "ghost", "mdQuoteBorder": "lime", "mdHr": "slateDim", "mdListBullet": "lime",
             "toolDiffAdded": "lime", "toolDiffRemoved": "redHot", "toolDiffContext": "slate",
             "syntaxComment": "slate", "syntaxKeyword": "lavender", "syntaxFunction": "lime", "syntaxVariable": "ghost", "syntaxString": "limeDim", "syntaxNumber": "redHot", "syntaxType": "limeDim", "syntaxOperator": "lavender", "syntaxPunctuation": "slate",
             "thinkingOff": "slateDim", "thinkingMinimal": "lavenderDim", "thinkingLow": "lavender", "thinkingMedium": "lime", "thinkingHigh": "redHot", "thinkingXhigh": "redHot", "bashMode": "amber",
